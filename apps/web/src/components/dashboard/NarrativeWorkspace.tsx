@@ -7,6 +7,7 @@ interface NarrativeWorkspaceProps {
   currency: string;
   selectedDateKey: string;
   onSelectDate: (date: Date) => void;
+  onActionClick?: (tab: 'journal' | 'schedule' | 'ledger') => void;
 }
 
 export function NarrativeWorkspace({
@@ -14,6 +15,7 @@ export function NarrativeWorkspace({
   currency,
   selectedDateKey,
   onSelectDate,
+  onActionClick,
 }: NarrativeWorkspaceProps) {
   const [activeWorkspaceTab, setActiveWorkspaceTab] = useState<"journal" | "expenditure">("journal");
 
@@ -33,10 +35,10 @@ export function NarrativeWorkspace({
   };
 
   return (
-    <div className="flex flex-col gap-5 bg-card/65 shadow-xl backdrop-blur-md p-6 border border-border rounded-2xl min-h-95">
+    <div className="flex flex-col gap-5 bg-card/65 shadow-xl backdrop-blur-md px-6 py-4 border border-border rounded-md min-h-[700px]">
       {/* Tab Header Selector */}
       <div className="flex justify-between items-center pb-3 border-border border-b">
-        <div className="flex gap-1 bg-muted p-0.5 border border-border rounded-lg font-semibold text-xs">
+        <div className="flex gap-1 bg-muted p-0.5 border border-border rounded-md font-semibold text-xs">
           <button
             onClick={() => setActiveWorkspaceTab("journal")}
             className={`px-4 py-2 rounded-md transition-all cursor-pointer flex items-center gap-1.5 font-mono uppercase tracking-wider text-[10px] ${
@@ -64,7 +66,7 @@ export function NarrativeWorkspace({
       <div className="flex flex-col flex-1">
         {/* 1. JOURNAL LOGS TAB */}
         {activeWorkspaceTab === "journal" && (
-          <div className="flex flex-col gap-4 pr-1 max-h-75 overflow-y-auto animate-fadeIn">
+          <div className="flex flex-col gap-4 pr-1 max-h-150 overflow-y-auto animate-fadeIn">
             {Object.keys(logs).filter((key) => logs[key].journal || (logs[key].events && logs[key].events.length > 0) || (logs[key].expenses && logs[key].expenses.length > 0)).length === 0 ? (
               <p className="py-10 text-muted-foreground text-xs text-center italic">Your journal feed is empty. Select a date on the calendar and write down your thoughts.</p>
             ) : (
@@ -81,7 +83,7 @@ export function NarrativeWorkspace({
                     <div
                       key={key}
                       onClick={() => handleDateClick(key)}
-                      className={`p-4 rounded-xl border transition-all cursor-pointer text-left flex flex-col gap-2.5 ${
+                      className={`p-4 rounded-md border transition-all cursor-pointer text-left flex flex-col gap-2.5 ${
                         isSelectedDate
                           ? "bg-primary/5 border-primary shadow-sm"
                           : "bg-muted/40 border-border/40 hover:border-secondary/40 hover:bg-muted/70"
@@ -90,30 +92,62 @@ export function NarrativeWorkspace({
                       <div className="flex justify-between items-center font-mono font-semibold text-[10px]">
                         <span className="text-primary">{formatKeyDate(key)}</span>
                         {log.mood && (
-                          <span className="bg-primary/10 px-2 py-0.5 rounded-full font-mono text-[9px] text-primary uppercase tracking-wide">
+                          <span className="bg-primary/10 px-2 py-0.5 rounded-full font-mono text-[9px] text-amber-400 uppercase tracking-wide">
                             {log.mood}
                           </span>
                         )}
                       </div>
 
                       {log.journal ? (
-                        <p className="font-light text-foreground text-xs leading-relaxed">{log.journal}</p>
+                        <p
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDateClick(key);
+                            onActionClick?.('journal');
+                          }}
+                          className="font-light text-foreground hover:text-primary text-xs leading-relaxed transition-colors cursor-pointer"
+                        >
+                          {log.journal}
+                        </p>
                       ) : (
-                        <p className="font-light text-muted-foreground text-xs italic">No thoughts logged for this day.</p>
+                        <p
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDateClick(key);
+                            onActionClick?.('journal');
+                          }}
+                          className="font-light text-muted-foreground hover:text-primary text-xs italic transition-colors cursor-pointer"
+                        >
+                          No thoughts logged for this day. Click to add.
+                        </p>
                       )}
 
                       {(hasEvents || hasExpenses) && (
                         <div className="flex flex-wrap gap-2 mt-1 pt-2.5 border-border/30 border-t">
                           {hasEvents && (
-                            <div className="flex items-center gap-1 bg-secondary/5 px-2 py-1 border border-secondary rounded font-mono text-[10px] text-primary">
+                            <div
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDateClick(key);
+                                onActionClick?.('schedule');
+                              }}
+                              className="flex items-center gap-1 bg-secondary/5 hover:bg-secondary/20 px-2 py-1 border border-secondary rounded font-mono text-[10px] text-pink-400 transition-colors cursor-pointer"
+                            >
                               <Calendar className="w-3 h-3" />
                               <span>{log.events?.length} schedules</span>
                             </div>
                           )}
                           {hasExpenses && (
-                            <div className="flex items-center gap-1 bg-primary/5 px-2 py-1 border border-primary/15 rounded font-mono text-[10px] text-primary">
+                            <div
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDateClick(key);
+                                onActionClick?.('ledger');
+                              }}
+                              className="flex items-center gap-1 bg-primary/5 hover:bg-primary/20 px-2 py-1 border border-primary/15 rounded font-mono text-[10px] text-chart-2 transition-colors cursor-pointer"
+                            >
                               <Coins className="w-3 h-3" />
-                              <span>{CURRENCY_SYMBOLS[currency]}{dayExpensesTotal.toFixed(2)} spent</span>
+                              <span>{CURRENCY_SYMBOLS[currency] || '$'}{dayExpensesTotal.toFixed(2)} spent</span>
                             </div>
                           )}
                         </div>
@@ -127,7 +161,7 @@ export function NarrativeWorkspace({
 
         {/* 2. EXPENDITURE TAB */}
         {activeWorkspaceTab === "expenditure" && (
-          <div className="flex flex-col gap-4 pr-1 max-h-75 overflow-y-auto animate-fadeIn">
+          <div className="flex flex-col gap-4 pr-1 max-h-150 overflow-y-auto animate-fadeIn">
             {Object.keys(logs).filter((key) => logs[key].expenses && logs[key].expenses.length > 0).length === 0 ? (
               <p className="py-10 text-muted-foreground text-xs text-center italic">No transactions recorded. Select a date on the calendar and log expenses under Ledger.</p>
             ) : (

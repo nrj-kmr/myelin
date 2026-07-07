@@ -48,7 +48,10 @@ export default function DashboardPage () {
   const [isMounted, setIsMounted] = useState(false)
   const [googleEvents, setGoogleEvents] = useState<any[]>([])
 
-  // Hydration fix for Date components like Calendar
+  // State to control DayDetailPanel tabs from NarrativeWorkspace
+  const [requestedDayTab, setRequestedDayTab] = useState<
+    'journal' | 'schedule' | 'ledger'
+  >('journal')
   useEffect(() => {
     setIsMounted(true)
   }, [])
@@ -83,7 +86,11 @@ export default function DashboardPage () {
           newLogs[dateKey].events = []
         }
         // Avoid duplicates if fetched multiple times
-        if (!newLogs[dateKey].events.some((e: any) => e.title === gEvent.title && e.time === gEvent.time)) {
+        if (
+          !newLogs[dateKey].events.some(
+            (e: any) => e.title === gEvent.title && e.time === gEvent.time
+          )
+        ) {
           newLogs[dateKey].events.push(gEvent)
         }
       }
@@ -105,8 +112,10 @@ export default function DashboardPage () {
   ).length
   const totalExpenses = Object.values(augmentedLogs)
     .flatMap((l: any) => l.expenses || [])
-    .reduce((sum, item) => sum + item.amount, 0)
-  const totalEvents = Object.values(augmentedLogs).flatMap((l: any) => l.events || []).length
+    .reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
+  const totalEvents = Object.values(augmentedLogs).flatMap(
+    (l: any) => l.events || []
+  ).length
 
   // Consistency score calculation
   const consistencyScore = Math.min(
@@ -128,7 +137,7 @@ export default function DashboardPage () {
       />
 
       {/* Main Container */}
-      <main className='space-y-6 mx-auto px-6 py-5 max-w-6xl'>
+      <main className='space-y-6 mx-auto px-6 py-5 max-w-[1600px]'>
         {/* Top Summary Stats */}
         <AnalyticsSummary
           totalJournalEntries={totalJournalEntries}
@@ -138,27 +147,9 @@ export default function DashboardPage () {
           currencySymbol={CURRENCY_SYMBOLS[currency] || '$'}
         />
 
-        {/* Grid Area */}
-        <div className='items-start gap-6 grid grid-cols-1 lg:grid-cols-3'>
-          {/* Left Column: AI insights & Workspace (2/3) */}
-          <div className='flex flex-col gap-6 lg:col-span-2'>
-            {/* AI Intelligent Insights Widget */}
-            <IntelligentInsights
-              userName={userName}
-              borderless={false}
-              onGoogleEventsFetched={(events) => setGoogleEvents(events)}
-            />
-
-            {/* Narrative Workspace Container */}
-            <NarrativeWorkspace
-              logs={augmentedLogs}
-              currency={currency}
-              selectedDateKey={selectedDateKey}
-              onSelectDate={setSelectedDate}
-            />
-          </div>
-
-          {/* Right Column: Smaller Calendar & Day Details (1/3) */}
+        {/* Main Dashboard Grid: 3 Panes (1/4 - 2/4 - 1/4 layout) */}
+        <div className='items-start gap-6 grid grid-cols-1 lg:grid-cols-4'>
+          {/* Left Sidebar: Calendar & Insights */}
           <div className='flex flex-col gap-6 lg:col-span-1'>
             <CalendarGrid
               selectedDate={selectedDate}
@@ -168,9 +159,30 @@ export default function DashboardPage () {
               logs={augmentedLogs}
             />
 
+            <IntelligentInsights
+              userName={userName}
+              borderless={false}
+              onGoogleEventsFetched={events => setGoogleEvents(events)}
+            />
+          </div>
+
+          {/* Center Content: Narrative Workspace */}
+          <div className='flex flex-col gap-6 lg:col-span-2'>
+            <NarrativeWorkspace
+              logs={augmentedLogs}
+              currency={currency}
+              selectedDateKey={selectedDateKey}
+              onSelectDate={setSelectedDate}
+              onActionClick={tab => setRequestedDayTab(tab)}
+            />
+          </div>
+
+          {/* Right Sidebar: Day Details & Logging */}
+          <div className='flex flex-col gap-6 lg:col-span-1'>
             <DayDetailPanel
               selectedDate={selectedDate}
               log={selectedDayLog}
+              requestedTab={requestedDayTab}
               onSaveJournal={handleSaveJournal}
               onAddEvent={handleAddEvent}
               onDeleteEvent={handleDeleteEvent}

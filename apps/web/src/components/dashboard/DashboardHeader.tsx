@@ -58,7 +58,7 @@ export function DashboardHeader ({
 
   return (
     <header className='top-0 z-50 sticky bg-card/70 backdrop-blur-md border-border border-b w-full'>
-      <div className='flex justify-between items-center mx-auto px-6 max-w-6xl h-16'>
+      <div className='flex justify-between items-center mx-auto px-6 max-w-[1600px] h-16'>
         <div className='flex items-center gap-4'>
           <Link href='/' className='group flex items-center gap-2.5'>
             <div className='flex justify-center items-center bg-secondary shadow-lg shadow-primary/20 rounded-lg w-8 h-8 group-hover:scale-105 transition-all'>
