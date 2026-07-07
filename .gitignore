@@ -34,3 +34,6 @@ pnpm-debug.log*
 # System files
 .DS_Store
 Thumbs.db
+
+# Designs
+stitch_productivity_suite

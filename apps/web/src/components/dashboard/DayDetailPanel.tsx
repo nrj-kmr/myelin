@@ -1,14 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { MessageSquare, Calendar as CalIcon, Coins, Trash2, Plus, Smile } from "lucide-react";
-
-interface DayLog {
-  journal?: string;
-  mood?: string;
-  events?: Array<{ title: string; time: string }>;
-  expenses?: Array<{ title: string; amount: number }>;
-}
+import { MessageSquare, Calendar as CalIcon, Coins, Trash2, Plus, Smile, Mic, MicOff } from "lucide-react";
+import { DayLog } from "@myelin/core";
 
 interface DayDetailPanelProps {
   selectedDate: Date;
@@ -40,6 +34,48 @@ export function DayDetailPanel({
   const [eventTime, setEventTime] = useState("10:00");
   const [expenseTitle, setExpenseTitle] = useState("");
   const [expenseAmount, setExpenseAmount] = useState("");
+
+  // Speech Recognition States
+  const [isListening, setIsListening] = useState(false);
+  const [recognition, setRecognition] = useState<any>(null);
+
+  useEffect(() => {
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      try {
+        const rec = new SpeechRecognition();
+        rec.continuous = false;
+        rec.interimResults = false;
+        rec.lang = "en-US";
+        
+        rec.onstart = () => setIsListening(true);
+        rec.onend = () => setIsListening(false);
+        rec.onerror = () => setIsListening(false);
+        rec.onresult = (event: any) => {
+          const text = event.results[0][0].transcript;
+          if (text) {
+            setJournal((prev) => (prev ? prev + " " + text : text));
+          }
+        };
+        setRecognition(rec);
+      } catch (e) {
+        console.error("SpeechRecognition initialization failed", e);
+      }
+    }
+  }, []);
+
+  const toggleSpeechInput = () => {
+    if (!recognition) {
+      alert("Speech recognition is not supported in this browser. Try Google Chrome.");
+      return;
+    }
+    if (isListening) {
+      recognition.stop();
+    } else {
+      recognition.start();
+    }
+  };
 
   const dateKey = (() => {
     const y = selectedDate.getFullYear();
@@ -108,7 +144,7 @@ export function DayDetailPanel({
         <button
           onClick={() => setActiveTab("journal")}
           className={`flex-1 py-1.5 rounded-md font-medium transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-            activeTab === "journal" ? "bg-card shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"
+            activeTab === "journal" ? "bg-card shadow-sm text-amber-300" : "text-muted-foreground hover:text-foreground"
           }`}
         >
           <MessageSquare className="w-3.5 h-3.5" /> Journal
@@ -116,7 +152,7 @@ export function DayDetailPanel({
         <button
           onClick={() => setActiveTab("schedule")}
           className={`flex-1 py-1.5 rounded-md font-medium transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-            activeTab === "schedule" ? "bg-card shadow-sm text-secondary" : "text-muted-foreground hover:text-foreground"
+            activeTab === "schedule" ? "bg-card shadow-sm text-pink-400" : "text-muted-foreground hover:text-foreground"
           }`}
         >
           <CalIcon className="w-3.5 h-3.5" /> Schedules
@@ -158,7 +194,29 @@ export function DayDetailPanel({
 
             {/* Editor */}
             <div className="flex flex-col flex-1 space-y-1.5">
-              <span className="font-semibold card-text-contrast text-[10px] uppercase tracking-wider">Write your thoughts</span>
+              <div className="flex justify-between items-center">
+                <span className="font-semibold card-text-contrast text-[10px] uppercase tracking-wider">Write your thoughts</span>
+                <button
+                  type="button"
+                  onClick={toggleSpeechInput}
+                  className={`px-2 py-0.5 rounded border text-[9px] font-bold uppercase tracking-wider font-mono cursor-pointer transition-all flex items-center gap-1 ${
+                    isListening
+                      ? "bg-primary/20 border-primary/40 text-primary animate-pulse shadow-sm shadow-primary/10"
+                      : "bg-muted border-border text-muted-foreground hover:text-foreground hover:bg-accent"
+                  }`}
+                  title="Voice Input (Speech to Text)"
+                >
+                  {isListening ? (
+                    <>
+                      <MicOff className="w-3 h-3 text-primary" /> Listening
+                    </>
+                  ) : (
+                    <>
+                      <Mic className="w-3 h-3" /> Voice Input
+                    </>
+                  )}
+                </button>
+              </div>
               <textarea
                 value={journal}
                 onChange={(e) => setJournal(e.target.value)}
