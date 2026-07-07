@@ -283,17 +283,17 @@ export default function AuthPage () {
         defaultValue='signin'
         className='z-10 flex flex-col w-full max-w-sm'
       >
-        <TabsList className='grid grid-cols-2 bg-card/65 backdrop-blur-md border border-border rounded-xl w-full h-10'>
+        <TabsList className='grid grid-cols-2 bg-card/65 backdrop-blur-md border border-border rounded-md w-full h-10'>
           <TabsTrigger
             value='signin'
-            className='data-[state=active]:bg-primary data-[state=active]:shadow-md rounded-lg font-mono font-bold text-muted-foreground data-[state=active]:text-primary-foreground text-xs uppercase tracking-wider transition-all'
+            className='data-[state=active]:bg-primary data-[state=active]:shadow-md rounded-md font-mono font-bold text-muted-foreground data-[state=active]:text-primary-foreground text-xs uppercase tracking-wider transition-all'
             onClick={() => setErrorMessage('')}
           >
             Sign In
           </TabsTrigger>
           <TabsTrigger
             value='signup'
-            className='data-[state=active]:bg-primary data-[state=active]:shadow-md rounded-lg font-mono font-bold text-muted-foreground data-[state=active]:text-primary-foreground text-xs uppercase tracking-wider transition-all'
+            className='data-[state=active]:bg-primary data-[state=active]:shadow-md rounded-md font-mono font-bold text-muted-foreground data-[state=active]:text-primary-foreground text-xs uppercase tracking-wider transition-all'
             onClick={() => {
               setErrorMessage('')
             }}
@@ -322,7 +322,7 @@ export default function AuthPage () {
         </div>
 
         <TabsContent value='signin' className='outline-none'>
-          <Card className='relative bg-card/65 p-5 border dark:border border-border rounded-3xl w-full max-w-sm overflow-hidden transition-all duration-300'>
+          <Card className='relative bg-card/65 p-5 border dark:border border-border rounded-md w-full max-w-sm overflow-hidden transition-all duration-300'>
             <CardHeader className='pb-4'>
               <CardTitle className='font-extrabold text-2xl tracking-tight'>
                 Sign In.
@@ -388,7 +388,7 @@ export default function AuthPage () {
         </TabsContent>
 
         <TabsContent value='signup' className='outline-none'>
-          <Card className='relative bg-card/65 mt-4 p-5 border dark:border border-border rounded-3xl w-full max-w-sm overflow-hidden transition-all duration-300'>
+          <Card className='relative bg-card/65 p-5 border dark:border border-border rounded-md w-full max-w-sm overflow-hidden transition-all duration-300'>
             <CardHeader className='pb-4'>
               <CardTitle className='font-extrabold text-2xl tracking-tight'>
                 Sign Up.

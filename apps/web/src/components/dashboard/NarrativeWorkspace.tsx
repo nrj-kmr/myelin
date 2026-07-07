@@ -33,10 +33,10 @@ export function NarrativeWorkspace({
   };
 
   return (
-    <div className="bg-card/65 backdrop-blur-md border border-border p-6 rounded-2xl shadow-xl flex flex-col gap-5 min-h-[380px]">
+    <div className="flex flex-col gap-5 bg-card/65 shadow-xl backdrop-blur-md p-6 border border-border rounded-2xl min-h-95">
       {/* Tab Header Selector */}
-      <div className="flex justify-between items-center pb-3 border-b border-border">
-        <div className="flex gap-1 bg-muted p-0.5 border border-border rounded-lg text-xs font-semibold">
+      <div className="flex justify-between items-center pb-3 border-border border-b">
+        <div className="flex gap-1 bg-muted p-0.5 border border-border rounded-lg font-semibold text-xs">
           <button
             onClick={() => setActiveWorkspaceTab("journal")}
             className={`px-4 py-2 rounded-md transition-all cursor-pointer flex items-center gap-1.5 font-mono uppercase tracking-wider text-[10px] ${
@@ -64,9 +64,9 @@ export function NarrativeWorkspace({
       <div className="flex flex-col flex-1">
         {/* 1. JOURNAL LOGS TAB */}
         {activeWorkspaceTab === "journal" && (
-          <div className="flex flex-col gap-4 max-h-[300px] overflow-y-auto pr-1 animate-fadeIn">
+          <div className="flex flex-col gap-4 pr-1 max-h-75 overflow-y-auto animate-fadeIn">
             {Object.keys(logs).filter((key) => logs[key].journal || (logs[key].events && logs[key].events.length > 0) || (logs[key].expenses && logs[key].expenses.length > 0)).length === 0 ? (
-              <p className="text-xs text-muted-foreground italic text-center py-10">Your journal feed is empty. Select a date on the calendar and write down your thoughts.</p>
+              <p className="py-10 text-muted-foreground text-xs text-center italic">Your journal feed is empty. Select a date on the calendar and write down your thoughts.</p>
             ) : (
               Object.entries(logs)
                 .filter(([_, log]) => log.journal || (log.events && log.events.length > 0) || (log.expenses && log.expenses.length > 0))
@@ -87,31 +87,31 @@ export function NarrativeWorkspace({
                           : "bg-muted/40 border-border/40 hover:border-secondary/40 hover:bg-muted/70"
                       }`}
                     >
-                      <div className="flex justify-between items-center text-[10px] font-mono font-semibold">
-                        <span className="text-secondary">{formatKeyDate(key)}</span>
+                      <div className="flex justify-between items-center font-mono font-semibold text-[10px]">
+                        <span className="text-primary">{formatKeyDate(key)}</span>
                         {log.mood && (
-                          <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary uppercase text-[9px] tracking-wide font-mono">
+                          <span className="bg-primary/10 px-2 py-0.5 rounded-full font-mono text-[9px] text-primary uppercase tracking-wide">
                             {log.mood}
                           </span>
                         )}
                       </div>
-                      
+
                       {log.journal ? (
-                        <p className="text-xs text-foreground font-light leading-relaxed">{log.journal}</p>
+                        <p className="font-light text-foreground text-xs leading-relaxed">{log.journal}</p>
                       ) : (
-                        <p className="text-xs text-muted-foreground italic font-light">No thoughts logged for this day.</p>
+                        <p className="font-light text-muted-foreground text-xs italic">No thoughts logged for this day.</p>
                       )}
 
                       {(hasEvents || hasExpenses) && (
-                        <div className="flex flex-wrap gap-2 pt-2.5 border-t border-border/30 mt-1">
+                        <div className="flex flex-wrap gap-2 mt-1 pt-2.5 border-border/30 border-t">
                           {hasEvents && (
-                            <div className="flex items-center gap-1 px-2 py-1 rounded bg-secondary/5 border border-secondary/15 text-[10px] text-secondary font-mono">
+                            <div className="flex items-center gap-1 bg-secondary/5 px-2 py-1 border border-secondary rounded font-mono text-[10px] text-primary">
                               <Calendar className="w-3 h-3" />
                               <span>{log.events?.length} schedules</span>
                             </div>
                           )}
                           {hasExpenses && (
-                            <div className="flex items-center gap-1 px-2 py-1 rounded bg-primary/5 border border-primary/15 text-[10px] text-primary font-mono">
+                            <div className="flex items-center gap-1 bg-primary/5 px-2 py-1 border border-primary/15 rounded font-mono text-[10px] text-primary">
                               <Coins className="w-3 h-3" />
                               <span>{CURRENCY_SYMBOLS[currency]}{dayExpensesTotal.toFixed(2)} spent</span>
                             </div>
@@ -127,9 +127,9 @@ export function NarrativeWorkspace({
 
         {/* 2. EXPENDITURE TAB */}
         {activeWorkspaceTab === "expenditure" && (
-          <div className="flex flex-col gap-4 max-h-[300px] overflow-y-auto pr-1 animate-fadeIn">
+          <div className="flex flex-col gap-4 pr-1 max-h-75 overflow-y-auto animate-fadeIn">
             {Object.keys(logs).filter((key) => logs[key].expenses && logs[key].expenses.length > 0).length === 0 ? (
-              <p className="text-xs text-muted-foreground italic text-center py-10">No transactions recorded. Select a date on the calendar and log expenses under Ledger.</p>
+              <p className="py-10 text-muted-foreground text-xs text-center italic">No transactions recorded. Select a date on the calendar and log expenses under Ledger.</p>
             ) : (
               Object.entries(logs)
                 .filter(([_, log]) => log.expenses && log.expenses.length > 0)
@@ -148,16 +148,16 @@ export function NarrativeWorkspace({
                           : "bg-muted/40 border-border/40 hover:border-secondary/40 hover:bg-muted/70"
                       }`}
                     >
-                      <div className="flex justify-between items-center text-[10px] font-mono font-semibold">
-                        <span className="text-secondary">{formatKeyDate(key)}</span>
-                        <span className="text-primary font-bold">
+                      <div className="flex justify-between items-center font-mono font-semibold text-[10px]">
+                        <span className="text-primary">{formatKeyDate(key)}</span>
+                        <span className="font-bold text-primary">
                           Total: {CURRENCY_SYMBOLS[currency]}{dayExpensesTotal.toFixed(2)}
                         </span>
                       </div>
                       <div className="space-y-1.5 mt-1">
                         {log.expenses?.map((exp, idx) => (
-                          <div key={idx} className="flex justify-between items-center text-xs py-1 border-b border-border/20 last:border-0">
-                            <span className="text-foreground font-light">{exp.title}</span>
+                          <div key={idx} className="flex justify-between items-center py-1 border-border/20 last:border-0 border-b text-xs">
+                            <span className="font-light text-foreground">{exp.title}</span>
                             <span className="font-mono font-semibold text-muted-foreground">-{CURRENCY_SYMBOLS[currency]}{exp.amount.toFixed(2)}</span>
                           </div>
                         ))}

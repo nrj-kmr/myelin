@@ -16,16 +16,19 @@ interface CalendarEventItem {
   title: string;
   time: string;
   platform: string;
+  dateKey?: string;
 }
 
 interface IntelligentInsightsProps {
   userName: string;
   borderless?: boolean;
+  onGoogleEventsFetched?: (events: any[]) => void;
 }
 
 export function IntelligentInsights({
   userName,
   borderless = false,
+  onGoogleEventsFetched,
 }: IntelligentInsightsProps) {
   const [googleConnected, setGoogleConnected] = useState(false);
 
@@ -37,7 +40,24 @@ export function IntelligentInsights({
   const [emailError, setEmailError] = useState("");
   const [calendarError, setCalendarError] = useState("");
 
+  const CACHE_KEY = "myelin_google_data_cache";
+  const CACHE_TTL = 1000 * 60 * 5; // 5 minutes
+
   useEffect(() => {
+    // Optimistically load from cache immediately on mount to prevent UI flashing
+    const cachedStr = sessionStorage.getItem(CACHE_KEY);
+    if (cachedStr) {
+      try {
+        const cached = JSON.parse(cachedStr);
+        if (Date.now() - cached.timestamp < CACHE_TTL) {
+          setEmails(cached.emails || []);
+          setCalendarEvents((cached.calendarEvents || []).slice(0, 5));
+          if (onGoogleEventsFetched) onGoogleEventsFetched(cached.calendarEvents || []);
+          setGoogleConnected(true); // Optimistically show connected state
+        }
+      } catch (e) {}
+    }
+
     const initializeGoogleConnection = async () => {
       if (!isSupabaseConfigured || !supabase) return;
 
@@ -49,7 +69,7 @@ export function IntelligentInsights({
 
         if (isGoogle && providerToken) {
           setGoogleConnected(true);
-          fetchGoogleData();
+          fetchGoogleData(false);
         } else {
           setGoogleConnected(false);
         }
@@ -61,8 +81,26 @@ export function IntelligentInsights({
     initializeGoogleConnection();
   }, []);
 
-  const fetchGoogleData = async () => {
+  const fetchGoogleData = async (forceRefresh = false, target: 'all' | 'email' | 'calendar' = 'all') => {
     try {
+      // 1. Check Cache First
+      if (!forceRefresh && target === 'all') {
+        const cachedStr = sessionStorage.getItem(CACHE_KEY);
+        if (cachedStr) {
+          try {
+            const cached = JSON.parse(cachedStr);
+            if (Date.now() - cached.timestamp < CACHE_TTL) {
+              setEmails(cached.emails || []);
+              setCalendarEvents((cached.calendarEvents || []).slice(0, 5));
+              if (onGoogleEventsFetched) onGoogleEventsFetched(cached.calendarEvents || []);
+              return;
+            }
+          } catch (err) {
+            console.warn("Invalid cache data, ignoring.");
+          }
+        }
+      }
+
       const { data: { session } } = await supabase?.auth?.getSession() || { data: { session: null } };
       const providerToken = session?.provider_token;
 
@@ -72,8 +110,21 @@ export function IntelligentInsights({
         return;
       }
 
-      // 1. Fetch Gmail unread messages
-      // if (emailPermission) {
+      // Read existing cache to preserve data we aren't refreshing
+      let fetchedEmails: any[] = [];
+      let fetchedEvents: any[] = [];
+      
+      const cachedStr = sessionStorage.getItem(CACHE_KEY);
+      if (cachedStr) {
+        try {
+          const cached = JSON.parse(cachedStr);
+          fetchedEmails = cached.emails || [];
+          fetchedEvents = cached.calendarEvents || [];
+        } catch (e) {}
+      }
+
+      // 2. Fetch Gmail unread messages
+      if (target === 'all' || target === 'email') {
         setLoadingEmails(true);
         setEmailError("");
         try {
@@ -91,7 +142,6 @@ export function IntelligentInsights({
                 const fromHeader = detail.payload?.headers?.find((h: any) => h.name === "From")?.value || "Unknown Sender";
                 const subjectHeader = detail.payload?.headers?.find((h: any) => h.name === "Subject")?.value || "No Subject";
 
-                // Extract clean sender name
                 const senderName = fromHeader.replace(/<.*>/, "").trim();
 
                 return {
@@ -101,9 +151,10 @@ export function IntelligentInsights({
                   time: new Date(Number(detail.internalDate)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 };
               });
-              const resolvedEmails = await Promise.all(detailPromises);
-              setEmails(resolvedEmails);
+              fetchedEmails = await Promise.all(detailPromises);
+              setEmails(fetchedEmails);
             } else {
+              fetchedEmails = [];
               setEmails([]);
             }
           } else {
@@ -114,32 +165,43 @@ export function IntelligentInsights({
         } finally {
           setLoadingEmails(false);
         }
-      // }
+      }
 
-      // 2. Fetch Google Calendar events
-      // if (calendarPermission) {
+      // 3. Fetch Google Calendar events
+      if (target === 'all' || target === 'calendar') {
         setLoadingCalendar(true);
         setCalendarError("");
         try {
           const nowISO = new Date().toISOString();
-          const calRes = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?maxResults=5&timeMin=${nowISO}&singleEvents=true&orderBy=startTime`, {
+          const calRes = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?maxResults=30&timeMin=${nowISO}&singleEvents=true&orderBy=startTime`, {
             headers: { Authorization: `Bearer ${providerToken}` }
           });
           if (calRes.ok) {
             const calData = await calRes.json();
             if (calData.items && calData.items.length > 0) {
-              const eventsList = calData.items.map((item: any) => {
+              fetchedEvents = calData.items.map((item: any) => {
                 const start = item.start?.dateTime || item.start?.date || "";
-                const startTimeStr = start ? new Date(start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "All Day";
+                const dateObj = start ? new Date(start) : new Date();
+                const startTimeStr = start ? dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "All Day";
+                
+                const y = dateObj.getFullYear();
+                const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+                const d = String(dateObj.getDate()).padStart(2, '0');
+                const dateKey = `${y}-${m}-${d}`;
+                
                 return {
                   title: item.summary || "Untitled Event",
                   time: startTimeStr,
                   platform: item.hangoutLink ? "Google Meet" : "Google Calendar",
+                  dateKey: dateKey,
                 };
               });
-              setCalendarEvents(eventsList);
+              setCalendarEvents(fetchedEvents.slice(0, 5));
+              if (onGoogleEventsFetched) onGoogleEventsFetched(fetchedEvents);
             } else {
+              fetchedEvents = [];
               setCalendarEvents([]);
+              if (onGoogleEventsFetched) onGoogleEventsFetched([]);
             }
           } else {
             setCalendarError("Failed to fetch events from Google Calendar API.");
@@ -149,7 +211,14 @@ export function IntelligentInsights({
         } finally {
           setLoadingCalendar(false);
         }
-      // }
+      }
+
+      // 4. Save to Cache
+      sessionStorage.setItem(CACHE_KEY, JSON.stringify({
+        timestamp: Date.now(),
+        emails: fetchedEmails,
+        calendarEvents: fetchedEvents
+      }));
 
     } catch (e) {
       console.warn("Failed to retrieve Supabase session for Google API calls:", e);
@@ -192,7 +261,7 @@ export function IntelligentInsights({
             {googleConnected && (
               <button
                 type="button"
-                onClick={fetchGoogleData}
+                onClick={() => fetchGoogleData(true, 'email')}
                 disabled={loadingEmails}
                 className="flex justify-center items-center hover:bg-muted p-1 rounded text-muted-foreground hover:text-foreground transition-all cursor-pointer"
                 title="Refresh Gmail Inbox"
@@ -243,17 +312,17 @@ export function IntelligentInsights({
         <div className="flex flex-col gap-3">
           <div className="flex justify-between items-center">
             <span className="flex items-center gap-1.5 font-mono font-bold text-[10px] text-muted-foreground uppercase tracking-wider">
-              <Calendar className="w-3.5 h-3.5 text-secondary" /> Google Calendar
+              <Calendar className="w-3.5 h-3.5 text-primary" /> Upcoming Schedules
             </span>
             {googleConnected && (
               <button
                 type="button"
-                onClick={fetchGoogleData}
+                onClick={() => fetchGoogleData(true, 'calendar')}
                 disabled={loadingCalendar}
                 className="flex justify-center items-center hover:bg-muted p-1 rounded text-muted-foreground hover:text-foreground transition-all cursor-pointer"
                 title="Refresh Calendar"
               >
-                <RefreshCw className={`w-3 h-3 ${loadingCalendar ? "animate-spin text-secondary" : ""}`} />
+                <RefreshCw className={`w-3 h-3 ${loadingCalendar ? "animate-spin text-primary" : ""}`} />
               </button>
             )}
           </div>

@@ -17,6 +17,7 @@ import { ThemeToggle } from '@/components/ThemeToggle'
 
 interface DashboardHeaderProps {
   userName: string
+  userEmail: string
   theme: 'light' | 'dark'
   currency: string
   onToggleTheme: () => void
@@ -141,15 +142,9 @@ export function DashboardHeader ({
             <>
               <Link
                 href='/signin'
-                className='px-3 py-2 font-semibold text-muted-foreground hover:text-foreground text-xs transition-all cursor-pointer'
-              >
-                Sign In
-              </Link>
-              <Link
-                href='/signin'
                 className='bg-primary hover:bg-primary/90 px-4 py-2 rounded-md font-medium text-primary-foreground text-sm transition-colors cursor-pointer'
               >
-                Get Started
+                Sign In
               </Link>
             </>
           )}

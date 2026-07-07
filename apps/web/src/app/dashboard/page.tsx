@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Brain } from 'lucide-react'
 
@@ -46,6 +46,7 @@ export default function DashboardPage () {
   )
 
   const [isMounted, setIsMounted] = useState(false)
+  const [googleEvents, setGoogleEvents] = useState<any[]>([])
 
   // Hydration fix for Date components like Calendar
   useEffect(() => {
@@ -66,6 +67,31 @@ export default function DashboardPage () {
     }
   }, [isSessionLoaded, isOnboarded, router])
 
+  // Augment logs with Google Calendar events dynamically
+  const augmentedLogs = useMemo(() => {
+    if (!logs) return {}
+    const newLogs = JSON.parse(JSON.stringify(logs)) // deep clone to avoid mutating local cache
+
+    // Merge google events
+    googleEvents.forEach(gEvent => {
+      const { dateKey } = gEvent
+      if (dateKey) {
+        if (!newLogs[dateKey]) {
+          newLogs[dateKey] = { events: [], expenses: [], journal: '' }
+        }
+        if (!newLogs[dateKey].events) {
+          newLogs[dateKey].events = []
+        }
+        // Avoid duplicates if fetched multiple times
+        if (!newLogs[dateKey].events.some((e: any) => e.title === gEvent.title && e.time === gEvent.time)) {
+          newLogs[dateKey].events.push(gEvent)
+        }
+      }
+    })
+
+    return newLogs
+  }, [logs, googleEvents])
+
   const selectedDateKey = (() => {
     const y = selectedDate.getFullYear()
     const m = String(selectedDate.getMonth() + 1).padStart(2, '0')
@@ -73,16 +99,14 @@ export default function DashboardPage () {
     return `${y}-${m}-${d}`
   })()
 
-  const selectedDayLog = logs[selectedDateKey] || {}
-
   // Compute analytics totals
-  const totalJournalEntries = Object.values(logs).filter(
-    l => !!l.journal
+  const totalJournalEntries = Object.values(augmentedLogs).filter(
+    (l: any) => !!l.journal
   ).length
-  const totalExpenses = Object.values(logs)
-    .flatMap(l => l.expenses || [])
+  const totalExpenses = Object.values(augmentedLogs)
+    .flatMap((l: any) => l.expenses || [])
     .reduce((sum, item) => sum + item.amount, 0)
-  const totalEvents = Object.values(logs).flatMap(l => l.events || []).length
+  const totalEvents = Object.values(augmentedLogs).flatMap((l: any) => l.events || []).length
 
   // Consistency score calculation
   const consistencyScore = Math.min(
@@ -90,13 +114,16 @@ export default function DashboardPage () {
     Math.max(50, 85 + totalJournalEntries * 3 - (totalExpenses > 100 ? 5 : 0))
   )
 
+  const selectedDayLog = augmentedLogs[selectedDateKey] || {}
+
   return (
-    <div className='relative bg-background selection:bg-primary/30 min-h-screen font-sans text-foreground selection:text-foreground transition-colors duration-300'>
+    <div className='flex flex-col bg-background selection:bg-primary/20 min-h-screen font-sans text-foreground transition-colors duration-300'>
       <DashboardHeader
         userName={userName}
+        userEmail={userEmail}
         theme={theme}
-        currency={currency}
         onToggleTheme={handleToggleTheme}
+        currency={currency}
         onChangeCurrency={handleChangeCurrency}
       />
 
@@ -116,11 +143,15 @@ export default function DashboardPage () {
           {/* Left Column: AI insights & Workspace (2/3) */}
           <div className='flex flex-col gap-6 lg:col-span-2'>
             {/* AI Intelligent Insights Widget */}
-            <IntelligentInsights userName={userName} borderless={false} />
+            <IntelligentInsights
+              userName={userName}
+              borderless={false}
+              onGoogleEventsFetched={(events) => setGoogleEvents(events)}
+            />
 
             {/* Narrative Workspace Container */}
             <NarrativeWorkspace
-              logs={logs}
+              logs={augmentedLogs}
               currency={currency}
               selectedDateKey={selectedDateKey}
               onSelectDate={setSelectedDate}
@@ -130,7 +161,8 @@ export default function DashboardPage () {
           {/* Right Column: Smaller Calendar & Day Details (1/3) */}
           <div className='flex flex-col gap-6 lg:col-span-1'>
             <div className='flex flex-col bg-card/65 backdrop-blur-md p-4 border border-border rounded-2xl w-full h-full'>
-              <Calendar
+              {isMounted ? (
+                <Calendar
                 mode='single'
                 selected={selectedDate}
                 onSelect={date => {
@@ -183,6 +215,9 @@ export default function DashboardPage () {
                   }
                 }}
               />
+              ) : (
+                <div className="flex-1 bg-muted rounded-md w-full min-h-75 animate-pulse" />
+              )}
             </div>
 
             <DayDetailPanel
