@@ -113,7 +113,7 @@ export function IntelligentInsights({
       // Read existing cache to preserve data we aren't refreshing
       let fetchedEmails: any[] = [];
       let fetchedEvents: any[] = [];
-      
+
       const cachedStr = sessionStorage.getItem(CACHE_KEY);
       if (cachedStr) {
         try {
@@ -172,8 +172,14 @@ export function IntelligentInsights({
         setLoadingCalendar(true);
         setCalendarError("");
         try {
-          const nowISO = new Date().toISOString();
-          const calRes = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?maxResults=30&timeMin=${nowISO}&singleEvents=true&orderBy=startTime`, {
+          const now = new Date();
+          const timeMinISO = now.toISOString();
+
+          const future = new Date();
+          future.setDate(now.getDate() + 40);
+          const timeMaxISO = future.toISOString();
+
+          const calRes = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?maxResults=30&timeMin=${timeMinISO}&timeMax=${timeMaxISO}&singleEvents=true&orderBy=startTime`, {
             headers: { Authorization: `Bearer ${providerToken}` }
           });
           if (calRes.ok) {
@@ -183,12 +189,12 @@ export function IntelligentInsights({
                 const start = item.start?.dateTime || item.start?.date || "";
                 const dateObj = start ? new Date(start) : new Date();
                 const startTimeStr = start ? dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "All Day";
-                
+
                 const y = dateObj.getFullYear();
                 const m = String(dateObj.getMonth() + 1).padStart(2, '0');
                 const d = String(dateObj.getDate()).padStart(2, '0');
                 const dateKey = `${y}-${m}-${d}`;
-                
+
                 return {
                   title: item.summary || "Untitled Event",
                   time: startTimeStr,

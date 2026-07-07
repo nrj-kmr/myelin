@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Brain } from 'lucide-react'
 
-import { Calendar, CalendarDayButton } from '@myelin/ui'
+import { CalendarGrid } from '@/components/dashboard/CalendarGrid'
 import { DayDetailPanel } from '@/components/dashboard/DayDetailPanel'
 import { AnalyticsSummary } from '@/components/dashboard/AnalyticsSummary'
 import { IntelligentInsights } from '@/components/dashboard/IntelligentInsights'
@@ -128,7 +128,7 @@ export default function DashboardPage () {
       />
 
       {/* Main Container */}
-      <main className='space-y-6 mx-auto px-6 py-8 max-w-6xl'>
+      <main className='space-y-6 mx-auto px-6 py-5 max-w-6xl'>
         {/* Top Summary Stats */}
         <AnalyticsSummary
           totalJournalEntries={totalJournalEntries}
@@ -160,65 +160,13 @@ export default function DashboardPage () {
 
           {/* Right Column: Smaller Calendar & Day Details (1/3) */}
           <div className='flex flex-col gap-6 lg:col-span-1'>
-            <div className='flex flex-col bg-card/65 backdrop-blur-md p-4 border border-border rounded-2xl w-full h-full'>
-              {isMounted ? (
-                <Calendar
-                mode='single'
-                selected={selectedDate}
-                onSelect={date => {
-                  if (date) setSelectedDate(date)
-                }}
-                month={viewingMonth}
-                onMonthChange={setViewingMonth}
-                className='flex-1 w-full'
-                classNames={{
-                  months: 'w-full flex-col',
-                  month: 'w-full',
-                  month_grid: 'w-full border-collapse'
-                }}
-                components={{
-                  DayButton: (props) => {
-                    const { day, modifiers, children, ...restProps } = props
-                    const date = day.date
-
-                    const y = date.getFullYear()
-                    const m = String(date.getMonth() + 1).padStart(2, '0')
-                    const d = String(date.getDate()).padStart(2, '0')
-                    const key = `${y}-${m}-${d}`
-
-                    const log = logs?.[key]
-                    const hasJournal = !!log?.journal
-                    const hasEvents = log?.events && log.events.length > 0
-                    const hasExpenses = log?.expenses && log.expenses.length > 0
-
-                    const getDayTooltip = () => {
-                      const lines: string[] = []
-                      if (log?.journal) lines.push(`Journal: ${log.journal}`)
-                      if (log?.mood) lines.push(`Mood: ${log.mood}`)
-                      if (log?.events?.length) lines.push(`Events: ${log.events.map((e) => `${e.time} ${e.title}`).join(' | ')}`)
-                      if (log?.expenses?.length) lines.push(`Expenses: ${log.expenses.map((e) => `${e.title} $${e.amount.toFixed(2)}`).join(' | ')}`)
-                      return lines.length > 0 ? lines.join('\n') : undefined
-                    }
-
-                    return (
-                      <CalendarDayButton day={day} modifiers={modifiers} title={getDayTooltip()} {...restProps}>
-                        {children}
-                        {(hasJournal || hasEvents || hasExpenses) && (
-                          <div className="bottom-1.5 absolute flex gap-0.5 pointer-events-none">
-                            {hasJournal && <span className="bg-primary rounded-full w-1 h-1" />}
-                            {hasEvents && <span className="bg-secondary rounded-full w-1 h-1" />}
-                            {hasExpenses && <span className="bg-chart-2 rounded-full w-1 h-1" />}
-                          </div>
-                        )}
-                      </CalendarDayButton>
-                    )
-                  }
-                }}
-              />
-              ) : (
-                <div className="flex-1 bg-muted rounded-md w-full min-h-75 animate-pulse" />
-              )}
-            </div>
+            <CalendarGrid
+              selectedDate={selectedDate}
+              viewingMonth={viewingMonth}
+              onDateSelect={setSelectedDate}
+              onMonthChange={setViewingMonth}
+              logs={augmentedLogs}
+            />
 
             <DayDetailPanel
               selectedDate={selectedDate}

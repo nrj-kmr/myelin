@@ -300,7 +300,7 @@ export function DayDetailPanel ({
                         <p className='font-medium card-text-contrast text-foreground text-xs'>
                           {evt.title}
                         </p>
-                        <p className='mt-0.5 font-mono card-text-contrast text-[10px] text-secondary'>
+                        <p className='mt-0.5 font-mono card-text-contrast text-[10px] text-primary/80'>
                           {evt.time}
                         </p>
                       </div>
