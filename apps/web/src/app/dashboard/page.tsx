@@ -40,7 +40,21 @@ export default function DashboardPage () {
     handleDeleteExpense
   } = useLogs(userEmail)
 
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date())
+  // Calendar State
+  const [selectedDate, setSelectedDate] = useState<Date>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = sessionStorage.getItem('myelin_selected_date')
+      if (saved) return new Date(saved)
+    }
+    return new Date()
+  })
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('myelin_selected_date', selectedDate.toISOString())
+    }
+  }, [selectedDate])
+
   const [viewingMonth, setViewingMonth] = useState<Date>(
     new Date(new Date().getFullYear(), new Date().getMonth(), 1)
   )
@@ -125,6 +139,10 @@ export default function DashboardPage () {
 
   const selectedDayLog = augmentedLogs[selectedDateKey] || {}
 
+  if (!isMounted) {
+    return null // Prevent hydration mismatch on Date and sessionStorage
+  }
+
   return (
     <div className='flex flex-col bg-background selection:bg-primary/20 min-h-screen font-sans text-foreground transition-colors duration-300'>
       <DashboardHeader
@@ -163,6 +181,8 @@ export default function DashboardPage () {
               userName={userName}
               borderless={false}
               onGoogleEventsFetched={events => setGoogleEvents(events)}
+              selectedDate={selectedDate}
+              logs={logs}
             />
           </div>
 

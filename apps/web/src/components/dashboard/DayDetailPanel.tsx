@@ -168,11 +168,11 @@ export function DayDetailPanel ({
   }
 
   const moods = [
-    { label: 'Productive 🧠', value: 'productive' },
-    { label: 'Neutral 😐', value: 'neutral' },
-    { label: 'Relaxed 🌊', value: 'relaxed' },
-    { label: 'Stressed ⚡', value: 'stressed' },
-    { label: 'Tired 😴', value: 'tired' }
+    { label: 'Productive 🧠', value: 'productive 🧠' },
+    { label: 'Neutral 😐', value: 'neutral 😐' },
+    { label: 'Relaxed 🌊', value: 'relaxed 🌊' },
+    { label: 'Stressed ⚡', value: 'stressed ⚡' },
+    { label: 'Tired 😴', value: 'tired 😴' }
   ]
 
   return (
@@ -193,7 +193,7 @@ export function DayDetailPanel ({
           onClick={() => setActiveTab('journal')}
           className={`flex-1 py-1.5 rounded-md font-medium transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
             activeTab === 'journal'
-              ? 'bg-card shadow-sm text-amber-300'
+              ? 'bg-card shadow-sm text-amber-600 dark:text-amber-400'
               : 'text-muted-foreground hover:text-foreground'
           }`}
         >
@@ -213,7 +213,7 @@ export function DayDetailPanel ({
           onClick={() => setActiveTab('ledger')}
           className={`flex-1 py-1.5 rounded-md font-medium transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
             activeTab === 'ledger'
-              ? 'bg-card shadow-sm text-chart-2'
+              ? 'bg-card shadow-sm text-green-600 dark:text-green-400'
               : 'text-muted-foreground hover:text-foreground'
           }`}
         >
@@ -279,7 +279,7 @@ export function DayDetailPanel ({
                 </button>
               </div>
               <textarea
-                id="journal-input"
+                id='journal-input'
                 value={journal}
                 onChange={e => setJournal(e.target.value)}
                 placeholder='Log your achievements, blockages, or lessons today...'
@@ -390,7 +390,7 @@ export function DayDetailPanel ({
                         <p className='font-medium card-text-contrast text-foreground text-xs'>
                           {exp.title}
                         </p>
-                        <p className='mt-0.5 font-mono card-text-contrast text-[10px] text-chart-2'>
+                        <p className='mt-0.5 font-mono card-text-contrast text-[10px] text-green-600 dark:text-green-400'>
                           {currencySymbol}
                           {exp.amount.toFixed(2)}
                         </p>
@@ -434,7 +434,7 @@ export function DayDetailPanel ({
                 />
                 <button
                   type='submit'
-                  className='bg-chart-2/10 hover:bg-chart-2/20 p-2 rounded-md text-chart-2 transition-colors cursor-pointer'
+                  className='bg-green-600/20 hover:bg-green-600/30 p-2 rounded-md text-green-600 dark:text-green-400 transition-colors cursor-pointer'
                 >
                   <Plus className='w-4 h-4' />
                 </button>

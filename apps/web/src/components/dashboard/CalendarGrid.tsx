@@ -8,6 +8,8 @@ interface CalendarGridProps {
   onDateSelect: (date: Date) => void;
   onMonthChange: (month: Date) => void;
   logs: Record<string, DayLog>;
+  isFlexible?: boolean;
+  onContextMenuDay?: (date: Date, e: React.MouseEvent) => void;
 }
 
 export function CalendarGrid({
@@ -16,6 +18,8 @@ export function CalendarGrid({
   onDateSelect,
   onMonthChange,
   logs,
+  isFlexible = false,
+  onContextMenuDay,
 }: CalendarGridProps) {
   const year = viewingMonth.getFullYear();
   const month = viewingMonth.getMonth();
@@ -102,7 +106,7 @@ export function CalendarGrid({
   return (
     <div className="flex flex-col bg-card/65 backdrop-blur-md p-4 border border-border rounded-lg w-full h-full">
       {/* Month Navigation */}
-      <div className="flex justify-between items-center mb-4 w-full px-2">
+      <div className="flex justify-between items-center mb-4 px-2 w-full">
         <button
           onClick={handlePrevMonth}
           className="hover:bg-accent p-1.5 rounded-lg text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
@@ -110,8 +114,8 @@ export function CalendarGrid({
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
-        <h2 
-          className="font-bold text-foreground text-sm uppercase tracking-tight cursor-pointer hover:text-primary transition-colors text-center"
+        <h2
+          className="font-bold text-foreground hover:text-primary text-sm text-center uppercase tracking-tight transition-colors cursor-pointer"
           onClick={() => {
             const now = new Date();
             onMonthChange(new Date(now.getFullYear(), now.getMonth(), 1));
@@ -139,10 +143,10 @@ export function CalendarGrid({
       </div>
 
       {/* Days Grid */}
-      <div className="flex-1 gap-1.5 grid grid-cols-7 select-none">
+      <div className={`flex-1 gap-1.5 grid grid-cols-7 select-none ${isFlexible ? 'auto-rows-fr' : ''}`}>
         {days.map((date, index) => {
           if (!date) {
-            return <div key={`empty-${index}`} className="aspect-square" />;
+            return <div key={`empty-${index}`} className={isFlexible ? '' : 'aspect-square'} />;
           }
 
           const key = formatDateKey(date);
@@ -159,8 +163,14 @@ export function CalendarGrid({
             <button
               key={key}
               onClick={() => onDateSelect(date)}
+              onContextMenu={(e) => {
+                if (onContextMenuDay) {
+                  e.preventDefault();
+                  onContextMenuDay(date, e);
+                }
+              }}
               title={getDayTooltip(log)}
-              className={`aspect-square rounded-sm p-1.5 flex flex-col justify-between border text-left transition-all duration-200 cursor-pointer relative group ${active
+              className={`${isFlexible ? 'min-h-20 h-full' : 'aspect-square'} rounded-sm p-1.5 flex flex-col justify-between border text-left transition-all duration-200 cursor-pointer relative group ${active
                 ? "bg-primary/10 border-primary/50 shadow-lg shadow-primary/5 text-foreground"
                 : current
                   ? "bg-accent border-secondary/40 text-foreground font-bold"
@@ -177,7 +187,7 @@ export function CalendarGrid({
               <div className="flex gap-0.5 mt-auto">
                 {hasJournal && (
                   <span
-                    className="bg-amber-300 rounded-full w-1.5 h-1.5"
+                    className="bg-amber-500 dark:bg-amber-300 rounded-full w-1.5 h-1.5"
                     title="Journal Logged"
                   />
                 )}
@@ -189,7 +199,7 @@ export function CalendarGrid({
                 )}
                 {hasExpenses && (
                   <span
-                    className="bg-chart-2 rounded-full w-1.5 h-1.5"
+                    className="bg-green-600 dark:bg-green-400 rounded-full w-1.5 h-1.5"
                     title="Expense Tracked"
                   />
                 )}

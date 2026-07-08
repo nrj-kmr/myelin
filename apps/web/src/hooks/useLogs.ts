@@ -115,6 +115,15 @@ export function useLogs(userEmail: string) {
     writeLogToDb(dateKey, "addEvent", { title, time });
   };
 
+  const handleEditEvent = (dateKey: string, index: number, title: string, time: string) => {
+    const updated = { ...logs };
+    if (updated[dateKey] && updated[dateKey].events && updated[dateKey].events![index]) {
+      updated[dateKey].events![index] = { title, time };
+      updateLogsLocally(updated);
+      writeLogToDb(dateKey, "editEvent", { index, title, time });
+    }
+  };
+
   const handleDeleteEvent = (dateKey: string, index: number) => {
     const updated = { ...logs };
     const event = updated[dateKey]?.events?.[index];
@@ -151,6 +160,7 @@ export function useLogs(userEmail: string) {
     fetchLogs,
     handleSaveJournal,
     handleAddEvent,
+    handleEditEvent,
     handleDeleteEvent,
     handleAddExpense,
     handleDeleteExpense,
