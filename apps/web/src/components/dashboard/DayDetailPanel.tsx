@@ -16,6 +16,7 @@ import { DayLog } from '@myelin/core'
 interface DayDetailPanelProps {
   selectedDate: Date
   log?: DayLog
+  requestedTab?: 'journal' | 'schedule' | 'ledger'
   onSaveJournal: (dateKey: string, journal: string, mood: string) => void
   onAddEvent: (dateKey: string, title: string, time: string) => void
   onDeleteEvent: (dateKey: string, index: number) => void
@@ -27,6 +28,7 @@ interface DayDetailPanelProps {
 export function DayDetailPanel ({
   selectedDate,
   log = {},
+  requestedTab,
   onSaveJournal,
   onAddEvent,
   onDeleteEvent,
@@ -37,6 +39,21 @@ export function DayDetailPanel ({
   const [activeTab, setActiveTab] = useState<'journal' | 'schedule' | 'ledger'>(
     'journal'
   )
+
+  useEffect(() => {
+    if (requestedTab) {
+      setActiveTab(requestedTab)
+    }
+  }, [requestedTab])
+
+  useEffect(() => {
+    if (activeTab === 'journal') {
+      // Small timeout ensures the DOM has rendered the textarea after tab switch
+      setTimeout(() => {
+        document.getElementById('journal-input')?.focus()
+      }, 50)
+    }
+  }, [activeTab, selectedDate])
 
   // Local form inputs
   const [journal, setJournal] = useState('')
@@ -151,15 +168,15 @@ export function DayDetailPanel ({
   }
 
   const moods = [
-    { label: 'Productive 🧠', value: 'productive' },
-    { label: 'Neutral 😐', value: 'neutral' },
-    { label: 'Relaxed 🌊', value: 'relaxed' },
-    { label: 'Stressed ⚡', value: 'stressed' },
-    { label: 'Tired 😴', value: 'tired' }
+    { label: 'Productive 🧠', value: 'productive 🧠' },
+    { label: 'Neutral 😐', value: 'neutral 😐' },
+    { label: 'Relaxed 🌊', value: 'relaxed 🌊' },
+    { label: 'Stressed ⚡', value: 'stressed ⚡' },
+    { label: 'Tired 😴', value: 'tired 😴' }
   ]
 
   return (
-    <div className='flex flex-col gap-5 bg-card/65 backdrop-blur-md p-5 border border-border rounded-2xl h-full'>
+    <div className='flex flex-col gap-5 bg-card/65 backdrop-blur-md px-5 py-3 border border-border rounded-md h-full'>
       {/* Date Header */}
       <div>
         <p className='font-mono font-bold card-text-contrast text-[10px] uppercase tracking-widest'>
@@ -171,12 +188,12 @@ export function DayDetailPanel ({
       </div>
 
       {/* Tabs */}
-      <div className='flex gap-1 bg-muted p-0.5 border border-border rounded-lg text-xs'>
+      <div className='flex gap-1 bg-muted p-0.5 border border-border rounded-md text-xs'>
         <button
           onClick={() => setActiveTab('journal')}
           className={`flex-1 py-1.5 rounded-md font-medium transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
             activeTab === 'journal'
-              ? 'bg-card shadow-sm text-amber-300'
+              ? 'bg-card shadow-sm text-amber-600 dark:text-amber-400'
               : 'text-muted-foreground hover:text-foreground'
           }`}
         >
@@ -196,7 +213,7 @@ export function DayDetailPanel ({
           onClick={() => setActiveTab('ledger')}
           className={`flex-1 py-1.5 rounded-md font-medium transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
             activeTab === 'ledger'
-              ? 'bg-card shadow-sm text-chart-2'
+              ? 'bg-card shadow-sm text-green-600 dark:text-green-400'
               : 'text-muted-foreground hover:text-foreground'
           }`}
         >
@@ -222,7 +239,7 @@ export function DayDetailPanel ({
                     key={m.value}
                     type='button'
                     onClick={() => setMood(m.value)}
-                    className={`py-1.5 px-2 rounded-lg border text-left text-xs font-medium cursor-pointer transition-all ${
+                    className={`py-1.5 px-2 rounded-md border text-left text-xs font-medium cursor-pointer transition-all ${
                       mood === m.value
                         ? 'bg-primary/10 border-primary/45 text-primary shadow-sm'
                         : 'bg-card border-border card-text-contrast hover:bg-muted'
@@ -262,16 +279,17 @@ export function DayDetailPanel ({
                 </button>
               </div>
               <textarea
+                id='journal-input'
                 value={journal}
                 onChange={e => setJournal(e.target.value)}
                 placeholder='Log your achievements, blockages, or lessons today...'
-                className='flex-1 bg-card p-3 border border-border focus:border-primary/40 rounded-xl focus:outline-none w-full min-h-35 card-text-contrast text-foreground text-xs resize-none placeholder-muted-foreground'
+                className='flex-1 bg-card p-3 border border-border focus:border-primary/40 rounded-md focus:outline-none w-full min-h-35 card-text-contrast text-foreground text-xs resize-none placeholder-muted-foreground'
               />
             </div>
 
             <button
               type='submit'
-              className='bg-primary hover:opacity-90 shadow py-2.5 rounded-xl focus-ring-enhanced w-full font-semibold text-primary-foreground text-xs uppercase tracking-wider transition-all cursor-pointer'
+              className='bg-primary hover:opacity-90 shadow py-2.5 rounded-md focus-ring-enhanced w-full font-semibold text-primary-foreground text-xs uppercase tracking-wider transition-all cursor-pointer'
             >
               Save Daily Journal
             </button>
@@ -294,13 +312,13 @@ export function DayDetailPanel ({
                   {log.events.map((evt, idx) => (
                     <div
                       key={idx}
-                      className='group flex justify-between items-center bg-card p-2 border border-border hover:border-secondary/40 rounded-lg'
+                      className='group flex justify-between items-center bg-card p-2 border border-border hover:border-secondary/40 rounded-md'
                     >
                       <div>
                         <p className='font-medium card-text-contrast text-foreground text-xs'>
                           {evt.title}
                         </p>
-                        <p className='mt-0.5 font-mono card-text-contrast text-[10px] text-secondary'>
+                        <p className='mt-0.5 font-mono card-text-contrast text-[10px] text-primary/80'>
                           {evt.time}
                         </p>
                       </div>
@@ -331,17 +349,17 @@ export function DayDetailPanel ({
                   placeholder='Review schema...'
                   value={eventTitle}
                   onChange={e => setEventTitle(e.target.value)}
-                  className='flex-1 bg-card px-2.5 py-1.5 border border-border focus:border-secondary/40 rounded-lg focus:outline-none card-text-contrast text-foreground text-xs placeholder-muted-foreground'
+                  className='flex-1 bg-card px-2.5 py-1.5 border border-border focus:border-secondary/40 rounded-md focus:outline-none card-text-contrast text-foreground text-xs placeholder-muted-foreground'
                 />
                 <input
                   type='time'
                   value={eventTime}
                   onChange={e => setEventTime(e.target.value)}
-                  className='bg-card px-2 py-1.5 border border-border rounded-lg focus:outline-none font-mono card-text-contrast text-foreground text-xs'
+                  className='bg-card px-2 py-1.5 border border-border rounded-md focus:outline-none font-mono card-text-contrast text-foreground text-xs'
                 />
                 <button
                   type='submit'
-                  className='bg-secondary hover:bg-secondary/90 p-2 rounded-lg focus-ring-enhanced text-primary transition-colors cursor-pointer'
+                  className='bg-secondary hover:bg-secondary/90 p-2 rounded-md focus-ring-enhanced text-primary transition-colors cursor-pointer'
                 >
                   <Plus className='w-4 h-4' />
                 </button>
@@ -366,13 +384,13 @@ export function DayDetailPanel ({
                   {log.expenses.map((exp, idx) => (
                     <div
                       key={idx}
-                      className='group flex justify-between items-center bg-card p-2 border border-border hover:border-chart-2/40 rounded-lg'
+                      className='group flex justify-between items-center bg-card p-2 border border-border hover:border-chart-2/40 rounded-md'
                     >
                       <div>
                         <p className='font-medium card-text-contrast text-foreground text-xs'>
                           {exp.title}
                         </p>
-                        <p className='mt-0.5 font-mono card-text-contrast text-[10px] text-chart-2'>
+                        <p className='mt-0.5 font-mono card-text-contrast text-[10px] text-green-600 dark:text-green-400'>
                           {currencySymbol}
                           {exp.amount.toFixed(2)}
                         </p>
@@ -412,11 +430,11 @@ export function DayDetailPanel ({
                   step='0.01'
                   value={expenseAmount}
                   onChange={e => setExpenseAmount(e.target.value)}
-                  className='bg-card px-2 py-1.5 border border-border focus:border-chart-2/40 rounded-lg focus:outline-none w-20 font-mono text-foreground text-xs placeholder-muted-foreground'
+                  className='bg-card px-2 py-1.5 border border-border focus:border-chart-2/40 rounded-md focus:outline-none w-20 font-mono text-foreground text-xs placeholder-muted-foreground'
                 />
                 <button
                   type='submit'
-                  className='bg-chart-2/10 hover:bg-chart-2/20 p-2 rounded-lg text-chart-2 transition-colors cursor-pointer'
+                  className='bg-green-600/20 hover:bg-green-600/30 p-2 rounded-md text-green-600 dark:text-green-400 transition-colors cursor-pointer'
                 >
                   <Plus className='w-4 h-4' />
                 </button>

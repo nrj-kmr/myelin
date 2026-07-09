@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Brain } from 'lucide-react'
 
-import { Calendar, CalendarDayButton } from '@myelin/ui'
+import { CalendarGrid } from '@/components/dashboard/CalendarGrid'
 import { DayDetailPanel } from '@/components/dashboard/DayDetailPanel'
 import { AnalyticsSummary } from '@/components/dashboard/AnalyticsSummary'
 import { IntelligentInsights } from '@/components/dashboard/IntelligentInsights'
@@ -40,7 +40,21 @@ export default function DashboardPage () {
     handleDeleteExpense
   } = useLogs(userEmail)
 
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date())
+  // Calendar State
+  const [selectedDate, setSelectedDate] = useState<Date>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = sessionStorage.getItem('myelin_selected_date')
+      if (saved) return new Date(saved)
+    }
+    return new Date()
+  })
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('myelin_selected_date', selectedDate.toISOString())
+    }
+  }, [selectedDate])
+
   const [viewingMonth, setViewingMonth] = useState<Date>(
     new Date(new Date().getFullYear(), new Date().getMonth(), 1)
   )
@@ -48,7 +62,10 @@ export default function DashboardPage () {
   const [isMounted, setIsMounted] = useState(false)
   const [googleEvents, setGoogleEvents] = useState<any[]>([])
 
-  // Hydration fix for Date components like Calendar
+  // State to control DayDetailPanel tabs from NarrativeWorkspace
+  const [requestedDayTab, setRequestedDayTab] = useState<
+    'journal' | 'schedule' | 'ledger'
+  >('journal')
   useEffect(() => {
     setIsMounted(true)
   }, [])
@@ -83,7 +100,11 @@ export default function DashboardPage () {
           newLogs[dateKey].events = []
         }
         // Avoid duplicates if fetched multiple times
-        if (!newLogs[dateKey].events.some((e: any) => e.title === gEvent.title && e.time === gEvent.time)) {
+        if (
+          !newLogs[dateKey].events.some(
+            (e: any) => e.title === gEvent.title && e.time === gEvent.time
+          )
+        ) {
           newLogs[dateKey].events.push(gEvent)
         }
       }
@@ -105,8 +126,10 @@ export default function DashboardPage () {
   ).length
   const totalExpenses = Object.values(augmentedLogs)
     .flatMap((l: any) => l.expenses || [])
-    .reduce((sum, item) => sum + item.amount, 0)
-  const totalEvents = Object.values(augmentedLogs).flatMap((l: any) => l.events || []).length
+    .reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
+  const totalEvents = Object.values(augmentedLogs).flatMap(
+    (l: any) => l.events || []
+  ).length
 
   // Consistency score calculation
   const consistencyScore = Math.min(
@@ -115,6 +138,10 @@ export default function DashboardPage () {
   )
 
   const selectedDayLog = augmentedLogs[selectedDateKey] || {}
+
+  if (!isMounted) {
+    return null // Prevent hydration mismatch on Date and sessionStorage
+  }
 
   return (
     <div className='flex flex-col bg-background selection:bg-primary/20 min-h-screen font-sans text-foreground transition-colors duration-300'>
@@ -128,7 +155,7 @@ export default function DashboardPage () {
       />
 
       {/* Main Container */}
-      <main className='space-y-6 mx-auto px-6 py-8 max-w-6xl'>
+      <main className='space-y-6 mx-auto px-6 py-5 max-w-[1600px]'>
         {/* Top Summary Stats */}
         <AnalyticsSummary
           totalJournalEntries={totalJournalEntries}
@@ -138,91 +165,44 @@ export default function DashboardPage () {
           currencySymbol={CURRENCY_SYMBOLS[currency] || '$'}
         />
 
-        {/* Grid Area */}
-        <div className='items-start gap-6 grid grid-cols-1 lg:grid-cols-3'>
-          {/* Left Column: AI insights & Workspace (2/3) */}
-          <div className='flex flex-col gap-6 lg:col-span-2'>
-            {/* AI Intelligent Insights Widget */}
+        {/* Main Dashboard Grid: 3 Panes (1/4 - 2/4 - 1/4 layout) */}
+        <div className='items-start gap-6 grid grid-cols-1 lg:grid-cols-4'>
+          {/* Left Sidebar: Calendar & Insights */}
+          <div className='flex flex-col gap-6 lg:col-span-1'>
+            <CalendarGrid
+              selectedDate={selectedDate}
+              viewingMonth={viewingMonth}
+              onDateSelect={setSelectedDate}
+              onMonthChange={setViewingMonth}
+              logs={augmentedLogs}
+            />
+
             <IntelligentInsights
               userName={userName}
               borderless={false}
-              onGoogleEventsFetched={(events) => setGoogleEvents(events)}
+              onGoogleEventsFetched={events => setGoogleEvents(events)}
+              selectedDate={selectedDate}
+              logs={logs}
             />
+          </div>
 
-            {/* Narrative Workspace Container */}
+          {/* Center Content: Narrative Workspace */}
+          <div className='flex flex-col gap-6 lg:col-span-2'>
             <NarrativeWorkspace
               logs={augmentedLogs}
               currency={currency}
               selectedDateKey={selectedDateKey}
               onSelectDate={setSelectedDate}
+              onActionClick={tab => setRequestedDayTab(tab)}
             />
           </div>
 
-          {/* Right Column: Smaller Calendar & Day Details (1/3) */}
+          {/* Right Sidebar: Day Details & Logging */}
           <div className='flex flex-col gap-6 lg:col-span-1'>
-            <div className='flex flex-col bg-card/65 backdrop-blur-md p-4 border border-border rounded-2xl w-full h-full'>
-              {isMounted ? (
-                <Calendar
-                mode='single'
-                selected={selectedDate}
-                onSelect={date => {
-                  if (date) setSelectedDate(date)
-                }}
-                month={viewingMonth}
-                onMonthChange={setViewingMonth}
-                className='flex-1 w-full'
-                classNames={{
-                  months: 'w-full flex-col',
-                  month: 'w-full',
-                  month_grid: 'w-full border-collapse'
-                }}
-                components={{
-                  DayButton: (props) => {
-                    const { day, modifiers, children, ...restProps } = props
-                    const date = day.date
-
-                    const y = date.getFullYear()
-                    const m = String(date.getMonth() + 1).padStart(2, '0')
-                    const d = String(date.getDate()).padStart(2, '0')
-                    const key = `${y}-${m}-${d}`
-
-                    const log = logs?.[key]
-                    const hasJournal = !!log?.journal
-                    const hasEvents = log?.events && log.events.length > 0
-                    const hasExpenses = log?.expenses && log.expenses.length > 0
-
-                    const getDayTooltip = () => {
-                      const lines: string[] = []
-                      if (log?.journal) lines.push(`Journal: ${log.journal}`)
-                      if (log?.mood) lines.push(`Mood: ${log.mood}`)
-                      if (log?.events?.length) lines.push(`Events: ${log.events.map((e) => `${e.time} ${e.title}`).join(' | ')}`)
-                      if (log?.expenses?.length) lines.push(`Expenses: ${log.expenses.map((e) => `${e.title} $${e.amount.toFixed(2)}`).join(' | ')}`)
-                      return lines.length > 0 ? lines.join('\n') : undefined
-                    }
-
-                    return (
-                      <CalendarDayButton day={day} modifiers={modifiers} title={getDayTooltip()} {...restProps}>
-                        {children}
-                        {(hasJournal || hasEvents || hasExpenses) && (
-                          <div className="bottom-1.5 absolute flex gap-0.5 pointer-events-none">
-                            {hasJournal && <span className="bg-primary rounded-full w-1 h-1" />}
-                            {hasEvents && <span className="bg-secondary rounded-full w-1 h-1" />}
-                            {hasExpenses && <span className="bg-chart-2 rounded-full w-1 h-1" />}
-                          </div>
-                        )}
-                      </CalendarDayButton>
-                    )
-                  }
-                }}
-              />
-              ) : (
-                <div className="flex-1 bg-muted rounded-md w-full min-h-75 animate-pulse" />
-              )}
-            </div>
-
             <DayDetailPanel
               selectedDate={selectedDate}
               log={selectedDayLog}
+              requestedTab={requestedDayTab}
               onSaveJournal={handleSaveJournal}
               onAddEvent={handleAddEvent}
               onDeleteEvent={handleDeleteEvent}
