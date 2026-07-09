@@ -32,18 +32,18 @@ export function AnalyticsSummary({
 
       {/* Expenses Card */}
       <div className="p-4 rounded-xl bg-card/65 backdrop-blur-md border border-border flex items-center gap-3">
-        <div className="w-10 h-10 rounded-lg bg-secondary/15 flex items-center justify-center text-secondary shrink-0">
+        <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center text-primary shrink-0">
           <Coins className="w-5 h-5" />
         </div>
         <div>
           <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-semibold uppercase tracking-wider">Total Spent</p>
-          <p className="text-lg font-bold text-secondary font-mono mt-0.5">{currencySymbol}{totalExpenses.toFixed(2)}</p>
+          <p className="text-lg font-bold text-primary font-mono mt-0.5">{currencySymbol}{totalExpenses.toFixed(2)}</p>
         </div>
       </div>
 
       {/* Upcoming Events Card */}
       <div className="p-4 rounded-xl bg-card/65 backdrop-blur-md border border-border flex items-center gap-3">
-        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+        <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center text-primary shrink-0">
           <CalIcon className="w-5 h-5" />
         </div>
         <div>
@@ -54,12 +54,12 @@ export function AnalyticsSummary({
 
       {/* Consistency Card */}
       <div className="p-4 rounded-xl bg-card/65 backdrop-blur-md border border-border flex items-center gap-3">
-        <div className="w-10 h-10 rounded-lg bg-secondary/15 flex items-center justify-center text-secondary shrink-0">
+        <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center text-primary shrink-0">
           <TrendingUp className="w-5 h-5" />
         </div>
         <div>
           <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-semibold uppercase tracking-wider">Reflex Score</p>
-          <p className="text-lg font-bold text-secondary font-mono mt-0.5">{consistencyScore}%</p>
+          <p className="text-lg font-bold text-primary font-mono mt-0.5">{consistencyScore}%</p>
         </div>
       </div>
 
