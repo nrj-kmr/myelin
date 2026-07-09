@@ -104,6 +104,13 @@ export function IntelligentInsights ({
   const [emailError, setEmailError] = useState('')
   const [calendarError, setCalendarError] = useState('')
 
+  const handleReauthenticate = async () => {
+    localStorage.removeItem('google_refresh_token')
+    sessionStorage.removeItem('google_access_token')
+    await supabase?.auth?.signOut()
+    router.push('/signin')
+  }
+
   // Inline event editing state
   const [editingEvent, setEditingEvent] = useState<{
     dateKey: string
@@ -265,14 +272,59 @@ export function IntelligentInsights ({
       const {
         data: { session }
       } = (await supabase?.auth?.getSession()) || { data: { session: null } }
-      const providerToken = session?.provider_token
+      let providerToken = session?.provider_token || sessionStorage.getItem('google_access_token')
 
-      if (!providerToken) {
+      // Save refresh token to localStorage so it survives page reloads
+      if (session?.provider_refresh_token) {
+        localStorage.setItem('google_refresh_token', session.provider_refresh_token)
+      }
+      const providerRefreshToken = session?.provider_refresh_token || localStorage.getItem('google_refresh_token')
+
+      if (!providerToken && !providerRefreshToken) {
         setEmailError('OAuth session expired. Re-authenticate to access Gmail.')
         setCalendarError(
           'OAuth session expired. Re-authenticate to access Calendar.'
         )
         return
+      }
+
+      const fetchWithRefresh = async (url: string, options: RequestInit = {}): Promise<Response> => {
+        let currentToken = providerToken
+        
+        let res = await fetch(url, {
+          ...options,
+          headers: { ...options.headers, Authorization: `Bearer ${currentToken}` }
+        })
+        
+        if (res.status === 401) {
+          try {
+            const refreshRes = await fetch('/api/google/refresh', { 
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ refresh_token: providerRefreshToken })
+            })
+            if (refreshRes.ok) {
+              const data = await refreshRes.json()
+              if (data.access_token) {
+                currentToken = data.access_token
+                providerToken = currentToken // Update outer token so parallel fetches don't all fail
+                sessionStorage.setItem('google_access_token', currentToken as string)
+                res = await fetch(url, {
+                  ...options,
+                  headers: { ...options.headers, Authorization: `Bearer ${currentToken}` }
+                })
+              }
+            } else {
+               // Token likely revoked or expired
+               localStorage.removeItem('google_refresh_token')
+               setEmailError('OAuth session expired. Please sign out and sign back in to re-authenticate.')
+               setCalendarError('OAuth session expired. Please sign out and sign back in to re-authenticate.')
+            }
+          } catch (e) {
+            console.error('Failed to auto-refresh token', e)
+          }
+        }
+        return res
       }
 
       // Read existing cache to preserve data we aren't refreshing
@@ -293,21 +345,15 @@ export function IntelligentInsights ({
         setLoadingEmails(true)
         setEmailError('')
         try {
-          const res = await fetch(
-            'https://gmail.googleapis.com/gmail/v1/users/me/messages?q=is:unread',
-            {
-              headers: { Authorization: `Bearer ${providerToken}` }
-            }
+          const res = await fetchWithRefresh(
+            'https://gmail.googleapis.com/gmail/v1/users/me/messages?q=is:unread'
           )
           if (res.ok) {
             const data = await res.json()
             if (data.messages && data.messages.length > 0) {
               const detailPromises = data.messages.map(async (m: any) => {
-                const detailRes = await fetch(
-                  `https://gmail.googleapis.com/gmail/v1/users/me/messages/${m.id}`,
-                  {
-                    headers: { Authorization: `Bearer ${providerToken}` }
-                  }
+                const detailRes = await fetchWithRefresh(
+                  `https://gmail.googleapis.com/gmail/v1/users/me/messages/${m.id}`
                 )
                 const detail = await detailRes.json()
                 const fromHeader =
@@ -415,11 +461,8 @@ export function IntelligentInsights ({
           future.setDate(now.getDate() + 40)
           const timeMaxISO = future.toISOString()
 
-          const calRes = await fetch(
-            `https://www.googleapis.com/calendar/v3/calendars/primary/events?maxResults=30&timeMin=${timeMinISO}&timeMax=${timeMaxISO}&singleEvents=true&orderBy=startTime`,
-            {
-              headers: { Authorization: `Bearer ${providerToken}` }
-            }
+          const calRes = await fetchWithRefresh(
+            `https://www.googleapis.com/calendar/v3/calendars/primary/events?maxResults=30&timeMin=${timeMinISO}&timeMax=${timeMaxISO}&singleEvents=true&orderBy=startTime`
           )
           if (calRes.ok) {
             const calData = await calRes.json()
@@ -571,9 +614,15 @@ export function IntelligentInsights ({
                 </span>
               </div>
             ) : emailError ? (
-              <div className='flex flex-col items-center gap-1 bg-red-500/5 p-4 border border-red-500/20 rounded-xl font-mono text-[10px] text-red-500 text-center'>
-                <AlertCircle className='mb-1 w-4 h-4 text-red-500' />
+              <div className='flex flex-col items-center gap-2 bg-red-500/5 p-4 border border-red-500/20 rounded-xl font-mono text-[10px] text-red-500 text-center'>
+                <AlertCircle className='w-4 h-4 text-red-500' />
                 <span>{emailError}</span>
+                <button
+                  onClick={handleReauthenticate}
+                  className='bg-red-500/10 hover:bg-red-500/20 mt-1 px-4 py-1.5 border border-red-500/20 rounded-lg font-bold transition-colors'
+                >
+                  Sign Out & Reauthenticate
+                </button>
               </div>
             ) : emails.length === 0 ? (
               <div className='flex justify-center items-center bg-muted/10 p-4 border border-border/40 rounded-xl min-h-28 text-[10px] text-muted-foreground text-center italic'>
@@ -687,9 +736,15 @@ export function IntelligentInsights ({
                 </span>
               </div>
             ) : calendarError ? (
-              <div className='flex flex-col items-center gap-1 bg-red-500/5 p-4 border border-red-500/20 rounded-xl font-mono text-[10px] text-red-500 text-center'>
-                <AlertCircle className='mb-1 w-4 h-4 text-red-500' />
+              <div className='flex flex-col items-center gap-2 bg-red-500/5 p-4 border border-red-500/20 rounded-xl font-mono text-[10px] text-red-500 text-center'>
+                <AlertCircle className='w-4 h-4 text-red-500' />
                 <span>{calendarError}</span>
+                <button
+                  onClick={handleReauthenticate}
+                  className='bg-red-500/10 hover:bg-red-500/20 mt-1 px-4 py-1.5 border border-red-500/20 rounded-lg font-bold transition-colors'
+                >
+                  Sign Out & Reauthenticate
+                </button>
               </div>
             ) : calendarEvents.length === 0 ? (
               <div className='flex justify-center items-center bg-muted/10 p-4 px-4 border border-border/40 rounded-xl min-h-28 text-[10px] text-muted-foreground text-center italic'>
