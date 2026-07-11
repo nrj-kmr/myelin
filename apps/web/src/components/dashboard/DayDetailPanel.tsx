@@ -176,7 +176,7 @@ export function DayDetailPanel ({
   ]
 
   return (
-    <div className='flex flex-col gap-5 bg-card/65 backdrop-blur-md px-5 py-3 border border-border rounded-md h-full'>
+    <div className='flex flex-col flex-1 gap-5 bg-card/65 backdrop-blur-md px-5 py-3 border border-border rounded-md h-full'>
       {/* Date Header */}
       <div>
         <p className='font-mono font-bold card-text-contrast text-[10px] uppercase tracking-widest'>

@@ -155,7 +155,7 @@ export default function DashboardPage () {
       />
 
       {/* Main Container */}
-      <main className='space-y-6 mx-auto px-6 py-5 max-w-[1600px]'>
+      <main className='space-y-6 mx-auto px-4 md:px-6 py-4 md:py-5 max-w-[1600px]'>
         {/* Top Summary Stats */}
         <AnalyticsSummary
           totalJournalEntries={totalJournalEntries}
@@ -166,9 +166,9 @@ export default function DashboardPage () {
         />
 
         {/* Main Dashboard Grid: 3 Panes (1/4 - 2/4 - 1/4 layout) */}
-        <div className='items-start gap-6 grid grid-cols-1 lg:grid-cols-4'>
+        <div className='gap-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 items-stretch'>
           {/* Left Sidebar: Calendar & Insights */}
-          <div className='flex flex-col gap-6 lg:col-span-1'>
+          <div className='flex flex-col gap-6 order-1 md:col-span-1 lg:col-span-1 h-full'>
             <CalendarGrid
               selectedDate={selectedDate}
               viewingMonth={viewingMonth}
@@ -187,7 +187,7 @@ export default function DashboardPage () {
           </div>
 
           {/* Center Content: Narrative Workspace */}
-          <div className='flex flex-col gap-6 lg:col-span-2'>
+          <div className='flex flex-col gap-6 order-3 lg:order-2 md:col-span-2 lg:col-span-2 h-full'>
             <NarrativeWorkspace
               logs={augmentedLogs}
               currency={currency}
@@ -198,7 +198,7 @@ export default function DashboardPage () {
           </div>
 
           {/* Right Sidebar: Day Details & Logging */}
-          <div className='flex flex-col gap-6 lg:col-span-1'>
+          <div className='flex flex-col gap-6 order-2 lg:order-3 md:col-span-1 lg:col-span-1 h-full'>
             <DayDetailPanel
               selectedDate={selectedDate}
               log={selectedDayLog}

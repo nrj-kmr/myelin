@@ -5,10 +5,8 @@ import { useRouter } from 'next/navigation'
 import { Mail, Calendar as CalIcon, Brain, Sparkles } from 'lucide-react'
 
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader'
-import {
-  IntelligentInsights,
-  EmailItem
-} from '@/components/dashboard/IntelligentInsights'
+import { IntelligentInsights } from '@/components/dashboard/IntelligentInsights'
+import { EmailItem } from '@myelin/core'
 import { CalendarGrid } from '@/components/dashboard/CalendarGrid'
 
 import { useUserSession } from '@/hooks/useUserSession'

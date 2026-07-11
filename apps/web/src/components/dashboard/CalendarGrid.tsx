@@ -104,7 +104,7 @@ export function CalendarGrid({
   const weekdays = ["S", "M", "T", "W", "T", "F", "S"];
 
   return (
-    <div className="flex flex-col bg-card/65 backdrop-blur-md p-4 border border-border rounded-lg w-full h-full">
+    <div className="flex flex-col bg-card/65 backdrop-blur-md p-4 border border-border rounded-lg w-full flex-none">
       {/* Month Navigation */}
       <div className="flex justify-between items-center mb-4 px-2 w-full">
         <button
@@ -143,7 +143,7 @@ export function CalendarGrid({
       </div>
 
       {/* Days Grid */}
-      <div className={`flex-1 gap-1.5 grid grid-cols-7 select-none ${isFlexible ? 'auto-rows-fr' : ''}`}>
+      <div className={`flex-1 gap-1 md:gap-1.5 grid grid-cols-7 select-none ${isFlexible ? 'auto-rows-fr' : ''}`}>
         {days.map((date, index) => {
           if (!date) {
             return <div key={`empty-${index}`} className={isFlexible ? '' : 'aspect-square'} />;
@@ -170,7 +170,7 @@ export function CalendarGrid({
                 }
               }}
               title={getDayTooltip(log)}
-              className={`${isFlexible ? 'min-h-20 h-full' : 'aspect-square'} rounded-sm p-1.5 flex flex-col justify-between border text-left transition-all duration-200 cursor-pointer relative group ${active
+              className={`${isFlexible ? 'min-h-14 md:min-h-20 h-full' : 'aspect-square'} overflow-hidden min-h-0 rounded-sm p-1 md:p-1.5 flex flex-col justify-between border text-left transition-all duration-200 cursor-pointer relative group ${active
                 ? "bg-primary/10 border-primary/50 shadow-lg shadow-primary/5 text-foreground"
                 : current
                   ? "bg-accent border-secondary/40 text-foreground font-bold"
@@ -184,22 +184,22 @@ export function CalendarGrid({
               </span>
 
               {/* Day Indicators */}
-              <div className="flex gap-0.5 mt-auto">
+              <div className="flex gap-0.5 mt-auto h-1.5 shrink-0">
                 {hasJournal && (
                   <span
-                    className="bg-amber-500 dark:bg-amber-300 rounded-full w-1.5 h-1.5"
+                    className="bg-amber-500 dark:bg-amber-300 rounded-full w-1.5 h-1.5 shrink-0"
                     title="Journal Logged"
                   />
                 )}
                 {hasEvents && (
                   <span
-                    className="bg-pink-400 rounded-full w-1.5 h-1.5"
+                    className="bg-pink-400 rounded-full w-1.5 h-1.5 shrink-0"
                     title="Event Scheduled"
                   />
                 )}
                 {hasExpenses && (
                   <span
-                    className="bg-green-600 dark:bg-green-400 rounded-full w-1.5 h-1.5"
+                    className="bg-green-600 dark:bg-green-400 rounded-full w-1.5 h-1.5 shrink-0"
                     title="Expense Tracked"
                   />
                 )}

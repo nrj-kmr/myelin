@@ -37,7 +37,7 @@ export function NarrativeWorkspace ({
   }
 
   return (
-    <div className='flex flex-col gap-5 bg-card/65 shadow-xl backdrop-blur-md px-6 py-4 border border-border rounded-md min-h-175'>
+    <div className='flex flex-col gap-5 bg-card/65 shadow-xl backdrop-blur-md px-6 py-4 border border-border rounded-md min-h-175 h-full flex-1'>
       {/* Tab Header Selector */}
       <div className='flex justify-between items-center pb-3 border-border border-b'>
         <div className='flex gap-1 bg-muted p-0.5 border border-border rounded-md font-semibold text-xs'>
