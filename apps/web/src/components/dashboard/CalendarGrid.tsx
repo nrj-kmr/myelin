@@ -104,7 +104,7 @@ export function CalendarGrid({
   const weekdays = ["S", "M", "T", "W", "T", "F", "S"];
 
   return (
-    <div className="flex flex-col bg-card/65 backdrop-blur-md p-4 border border-border rounded-lg w-full flex-none">
+    <div className={`flex flex-col bg-card/65 backdrop-blur-md p-4 border border-border rounded-lg w-full ${isFlexible ? 'h-full flex-1' : 'flex-none'}`}>
       {/* Month Navigation */}
       <div className="flex justify-between items-center mb-4 px-2 w-full">
         <button

@@ -245,7 +245,7 @@ export default function InsightsPage () {
         {/* Main Layout Grid */}
         <div className='flex-1 gap-6 grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 min-h-0 overflow-hidden'>
           {/* Left Sidebar: Data Feed (Intelligent Insights Component) */}
-          <div className='flex flex-col gap-6 lg:col-span-1 h-full overflow-hidden'>
+          <div className='min-w-0 flex flex-col gap-6 lg:col-span-1 h-full overflow-hidden'>
             <IntelligentInsights
               userName={userName}
               borderless={false}
@@ -266,7 +266,7 @@ export default function InsightsPage () {
           </div>
 
           {/* Main Content Area */}
-          <div className='flex flex-col lg:col-span-2 xl:col-span-3 pr-2 h-full overflow-hidden'>
+          <div className='min-w-0 flex flex-col lg:col-span-2 xl:col-span-3 pr-2 h-full overflow-hidden'>
             {activePageTab === 'mail' && (
               <div
                 className={`flex flex-col flex-1 bg-card/65 shadow-xl backdrop-blur-md px-6 pt-6 pb-2 border border-border rounded-md min-h-125 ${

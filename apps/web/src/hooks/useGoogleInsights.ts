@@ -423,15 +423,7 @@ export function useGoogleInsights({
       return (a.time || '') > (b.time || '') ? 1 : -1
     })
 
-    if (selectedDate && !isDedicatedPage) {
-      const y = selectedDate.getFullYear()
-      const m = String(selectedDate.getMonth() + 1).padStart(2, '0')
-      const d = String(selectedDate.getDate()).padStart(2, '0')
-      const dateKey = `${y}-${m}-${d}`
-
-      const filtered = combinedEvents.filter(e => e.dateKey === dateKey)
-      setCalendarEvents(filtered)
-    } else if (isDedicatedPage && viewingMonth) {
+    if (isDedicatedPage && viewingMonth) {
       // Show all events for the viewing month
       const y = viewingMonth.getFullYear()
       const m = String(viewingMonth.getMonth() + 1).padStart(2, '0')
@@ -442,9 +434,13 @@ export function useGoogleInsights({
       setCalendarEvents(filtered)
     } else {
       // Filter out past events for the upcoming view
-      const todayKey = new Date().toISOString().split('T')[0]
+      const today = new Date()
+      const y = today.getFullYear()
+      const m = String(today.getMonth() + 1).padStart(2, '0')
+      const d = String(today.getDate()).padStart(2, '0')
+      const todayKey = `${y}-${m}-${d}`
       const upcoming = combinedEvents.filter(e => (e.dateKey || '') >= todayKey)
-      setCalendarEvents(upcoming.slice(0, 5))
+      setCalendarEvents(upcoming)
     }
   }, [selectedDate, viewingMonth, allCalendarEvents, logs, isDedicatedPage])
 
