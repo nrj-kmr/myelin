@@ -2,11 +2,11 @@
 
 import React, { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { Mail, Calendar as CalIcon, Brain, Sparkles } from 'lucide-react'
+import { Mail, Calendar as CalIcon, Brain, Sparkles, ArrowLeft } from 'lucide-react'
 
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader'
 import { IntelligentInsights } from '@/components/dashboard/IntelligentInsights'
-import { EmailItem } from '@myelin/core'
+import { EmailItem, supabase } from '@myelin/core'
 import { CalendarGrid } from '@/components/dashboard/CalendarGrid'
 
 import { useUserSession } from '@/hooks/useUserSession'
@@ -150,10 +150,80 @@ export default function InsightsPage () {
   const [googleEvents, setGoogleEvents] = useState<any[]>([])
   const [googleEmails, setGoogleEmails] = useState<EmailItem[]>([])
   const [selectedEmail, setSelectedEmail] = useState<EmailItem | null>(null)
+  const [resolvedEmailHtml, setResolvedEmailHtml] = useState<string>('')
+  const [showMobileCalendarDetail, setShowMobileCalendarDetail] = useState(false)
 
   useEffect(() => {
     setIsMounted(true)
   }, [])
+
+  // Resolve inline attachments (cid: images) when an email is selected
+  useEffect(() => {
+    if (!selectedEmail || !selectedEmail.isHtml || !selectedEmail.content) {
+      setResolvedEmailHtml(selectedEmail?.content || '')
+      return
+    }
+
+    const resolveImages = async () => {
+      let html = selectedEmail.content!
+
+      // OPTIMISTIC RENDER: Show the email instantly before resolving heavy network images
+      setResolvedEmailHtml(html)
+
+      if (
+        !selectedEmail.inlineAttachments ||
+        selectedEmail.inlineAttachments.length === 0
+      ) {
+        return
+      }
+
+      try {
+        const {
+          data: { session }
+        } = (await supabase?.auth?.getSession()) || { data: { session: null } }
+        const token =
+          session?.provider_token ||
+          sessionStorage.getItem('google_access_token')
+
+        for (const att of selectedEmail.inlineAttachments) {
+          if (html.includes(`cid:${att.cid}`)) {
+            if (att.data) {
+              // Image data was small enough to be included natively
+              const base64 = att.data.replace(/-/g, '+').replace(/_/g, '/')
+              html = html.replace(
+                `cid:${att.cid}`,
+                `data:${att.mimeType};base64,${base64}`
+              )
+            } else if (token && att.attachmentId) {
+              // Image data needs to be fetched from Google API
+              const res = await fetch(
+                `https://gmail.googleapis.com/gmail/v1/users/me/messages/${selectedEmail.id}/attachments/${att.attachmentId}`,
+                {
+                  headers: { Authorization: `Bearer ${token}` }
+                }
+              )
+              if (res.ok) {
+                const data = await res.json()
+                if (data.data) {
+                  const base64 = data.data.replace(/-/g, '+').replace(/_/g, '/')
+                  html = html.replace(
+                    `cid:${att.cid}`,
+                    `data:${att.mimeType};base64,${base64}`
+                  )
+                }
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Error resolving inline images', e)
+      }
+      // FINAL RENDER: Update with fully loaded images
+      setResolvedEmailHtml(html)
+    }
+
+    resolveImages()
+  }, [selectedEmail])
 
   // Initialize logs
   useEffect(() => {
@@ -168,6 +238,10 @@ export default function InsightsPage () {
       router.push('/signin')
     }
   }, [isSessionLoaded, isOnboarded, router])
+
+  const activeEmails = googleEmails.filter(
+    (e) => !e.markedReadLocally && !e.markedDeletedLocally
+  )
 
   // Merge logs with Google Calendar events
   const augmentedLogs = useMemo(() => {
@@ -245,7 +319,15 @@ export default function InsightsPage () {
         {/* Main Layout Grid */}
         <div className='flex-1 gap-6 grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 min-h-0 overflow-hidden'>
           {/* Left Sidebar: Data Feed (Intelligent Insights Component) */}
-          <div className='min-w-0 flex flex-col gap-6 lg:col-span-1 h-full overflow-hidden'>
+          <div className={`flex flex-col gap-6 lg:col-span-1 min-w-0 h-full overflow-hidden transition-all duration-300 ${activePageTab === 'mail' && selectedEmail ? 'hidden lg:flex' : ''} ${activePageTab === 'calendar' && !showMobileCalendarDetail ? 'hidden lg:flex' : ''}`}>
+            {activePageTab === 'calendar' && showMobileCalendarDetail && (
+              <button
+                onClick={() => setShowMobileCalendarDetail(false)}
+                className='lg:hidden flex items-center gap-2 p-2 -mb-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 w-fit transition-colors'
+              >
+                <ArrowLeft className='w-4 h-4' /> Back to Calendar
+              </button>
+            )}
             <IntelligentInsights
               userName={userName}
               borderless={false}
@@ -266,7 +348,7 @@ export default function InsightsPage () {
           </div>
 
           {/* Main Content Area */}
-          <div className='min-w-0 flex flex-col lg:col-span-2 xl:col-span-3 pr-2 h-full overflow-hidden'>
+          <div className={`flex flex-col lg:col-span-2 xl:col-span-3 pr-2 min-w-0 h-full overflow-hidden transition-all duration-300 ${activePageTab === 'mail' && !selectedEmail ? 'hidden lg:flex' : ''} ${activePageTab === 'calendar' && showMobileCalendarDetail ? 'hidden lg:flex' : ''}`}>
             {activePageTab === 'mail' && (
               <div
                 className={`flex flex-col flex-1 bg-card/65 shadow-xl backdrop-blur-md px-6 pt-6 pb-2 border border-border rounded-md min-h-125 ${
@@ -277,6 +359,13 @@ export default function InsightsPage () {
               >
                 {selectedEmail ? (
                   <div className='flex flex-col w-full h-full animate-fadeIn'>
+                    {/* Back button for mobile */}
+                    <button
+                      onClick={() => setSelectedEmail(null)}
+                      className='lg:hidden flex items-center gap-2 mb-4 p-2 -ml-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 w-fit transition-colors'
+                    >
+                      <ArrowLeft className='w-4 h-4' /> Back to Inbox
+                    </button>
                     <div className='flex items-center gap-4 pb-3 border-border/50 border-b'>
                       <div className='flex justify-center items-center bg-secondary/60 rounded-full w-12 h-12 text-muted-foreground shrink-0'>
                         <Mail className='w-5 h-5' />
@@ -314,7 +403,7 @@ export default function InsightsPage () {
                       <div className='flex flex-col flex-1 bg-background/50 border border-border/50 rounded-md overflow-hidden'>
                         {selectedEmail.isHtml ? (
                           <iframe
-                            srcDoc={selectedEmail.content}
+                            srcDoc={resolvedEmailHtml}
                             className='flex-1 bg-white px-6 py-4 border-none rounded-md w-full'
                             sandbox='allow-popups allow-popups-to-escape-sandbox allow-same-origin'
                             title='Email Content'
@@ -329,7 +418,7 @@ export default function InsightsPage () {
                       </div>
                     </div>
                   </div>
-                ) : googleEmails.length > 0 ? (
+                ) : activeEmails.length > 0 ? (
                   <div className='flex flex-col items-center max-w-2xl animate-fadeIn'>
                     <div className='flex justify-center items-center bg-secondary/60 mb-6 rounded-full w-16 h-16 text-muted-foreground'>
                       <Sparkles className='w-8 h-8' />
@@ -340,12 +429,12 @@ export default function InsightsPage () {
                     <p className='mb-6 text-muted-foreground leading-relaxed'>
                       You currently have{' '}
                       <span className='font-bold text-foreground'>
-                        {googleEmails.length} unread messages.
+                        {activeEmails.length} unread messages.
                       </span>{' '}
                       <br />
                       Recent senders include:{' '}
                       <span className='font-medium text-foreground'>
-                        {Array.from(new Set(googleEmails.map(e => e.sender)))
+                        {Array.from(new Set(activeEmails.map(e => e.sender)))
                           .slice(0, 3)
                           .join(', ')}
                         .
@@ -355,13 +444,13 @@ export default function InsightsPage () {
                       below.
                     </p>
 
-                    {googleEmails.length > 0 && googleEmails[0]?.summary && (
+                    {activeEmails.length > 0 && activeEmails[0]?.summary && (
                       <div className='flex flex-col bg-muted/40 p-4 px-8 border border-border/50 rounded-xl w-full text-left'>
                         <span className='mb-2 font-semibold text-muted-foreground text-xs uppercase tracking-widest'>
                           Latest Insights
                         </span>
                         <div className='flex flex-col gap-2'>
-                          {googleEmails.slice(0, 2).map((email, idx) =>
+                          {activeEmails.slice(0, 2).map((email, idx) =>
                             email.summary ? (
                               <div
                                 key={idx}
@@ -407,7 +496,10 @@ export default function InsightsPage () {
                   <CalendarGrid
                     selectedDate={selectedDate}
                     viewingMonth={viewingMonth}
-                    onDateSelect={setSelectedDate}
+                    onDateSelect={(date) => {
+                      setSelectedDate(date)
+                      setShowMobileCalendarDetail(true)
+                    }}
                     onMonthChange={setViewingMonth}
                     logs={augmentedLogs}
                     isFlexible={true}

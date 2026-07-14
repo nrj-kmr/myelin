@@ -58,7 +58,9 @@ export function IntelligentInsights ({
     emailError,
     calendarError,
     fetchGoogleData,
-    handleReauthenticate
+    handleReauthenticate,
+    markEmailAsRead,
+    deleteEmail
   } = useGoogleInsights({
     selectedDate,
     viewingMonth,
@@ -83,6 +85,8 @@ export function IntelligentInsights ({
             handleReauthenticate={handleReauthenticate}
             isDedicatedPage={isDedicatedPage}
             onEmailSelect={onEmailSelect}
+            markEmailAsRead={markEmailAsRead}
+            deleteEmail={deleteEmail}
           />
         )}
 

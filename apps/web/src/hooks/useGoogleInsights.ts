@@ -199,9 +199,10 @@ export function useGoogleInsights({
 
                 const getBodyData = (
                   payload: any
-                ): { content: string; isHtml: boolean } => {
+                ): { content: string; isHtml: boolean; inlineAttachments: any[] } => {
                   let htmlData = ''
                   let plainData = ''
+                  const inlineAttachments: any[] = []
 
                   const searchParts = (parts: any[]) => {
                     for (const part of parts) {
@@ -212,7 +213,21 @@ export function useGoogleInsights({
                         part.body?.data
                       ) {
                         plainData = part.body.data
-                      } else if (part.parts && part.parts.length > 0) {
+                      } else if (part.headers) {
+                        const cidHeader = part.headers.find(
+                          (h: any) => h.name.toLowerCase() === 'content-id'
+                        )
+                        if (cidHeader && (part.body?.attachmentId || part.body?.data)) {
+                          inlineAttachments.push({
+                            cid: cidHeader.value.replace(/[<>]/g, ''),
+                            attachmentId: part.body?.attachmentId || null,
+                            data: part.body?.data || null,
+                            mimeType: part.mimeType
+                          })
+                        }
+                      }
+                      
+                      if (part.parts && part.parts.length > 0) {
                         searchParts(part.parts)
                       }
                     }
@@ -227,23 +242,26 @@ export function useGoogleInsights({
                   }
 
                   if (htmlData)
-                    return { content: decodeBase64UTF8(htmlData), isHtml: true }
+                    return { content: decodeBase64UTF8(htmlData), isHtml: true, inlineAttachments }
                   if (plainData)
                     return {
                       content: decodeBase64UTF8(plainData),
-                      isHtml: false
+                      isHtml: false,
+                      inlineAttachments
                     }
-                  return { content: '', isHtml: false }
+                  return { content: '', isHtml: false, inlineAttachments }
                 }
 
                 const bodyData = getBodyData(detail.payload)
 
                 return {
+                  id: detail.id,
                   sender: senderName,
                   subject: subjectHeader,
                   summary: detail.snippet || '',
                   content: bodyData.content,
                   isHtml: bodyData.isHtml,
+                  inlineAttachments: bodyData.inlineAttachments,
                   time: new Date(
                     Number(detail.internalDate)
                   ).toLocaleTimeString([], {
@@ -444,6 +462,82 @@ export function useGoogleInsights({
     }
   }, [selectedDate, viewingMonth, allCalendarEvents, logs, isDedicatedPage])
 
+  const markEmailAsRead = async (id: string) => {
+    setEmails(prev => {
+      const newState = prev.map(email => email.id === id ? { ...email, markedReadLocally: true } : email)
+      if (onEmailsFetched) {
+        setTimeout(() => onEmailsFetched(newState), 0)
+      }
+      return newState
+    })
+
+    try {
+      const { data: { session } } = await supabase?.auth?.getSession() || { data: { session: null } }
+      const token = session?.provider_token || sessionStorage.getItem('google_access_token')
+      if (!token) return
+
+      await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}/modify`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ removeLabelIds: ['UNREAD'] })
+      })
+    } catch (e) {
+      console.error('Failed to mark email as read on Google', e)
+    }
+  }
+
+  const deleteEmail = async (id: string) => {
+    setEmails(prev => {
+      const newState = prev.map(email => email.id === id ? { ...email, markedDeletedLocally: true } : email)
+      if (onEmailsFetched) {
+        setTimeout(() => onEmailsFetched(newState), 0)
+      }
+      return newState
+    })
+
+    try {
+      const { data: { session } } = await supabase?.auth?.getSession() || { data: { session: null } }
+      const token = session?.provider_token || sessionStorage.getItem('google_access_token')
+      if (!token) return
+
+      await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}/trash`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+    } catch (e) {
+      console.error('Failed to trash email on Google', e)
+    }
+  }
+
+  const fetchAttachment = async (messageId: string, attachmentId: string) => {
+    try {
+      const { data: { session } } = await supabase?.auth?.getSession() || { data: { session: null } }
+      const token = session?.provider_token || sessionStorage.getItem('google_access_token')
+      if (!token) return null
+
+      const res = await fetch(
+        `https://gmail.googleapis.com/gmail/v1/users/me/messages/${messageId}/attachments/${attachmentId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      )
+      if (res.ok) {
+        const data = await res.json()
+        return data.data // This is the base64url encoded string
+      }
+    } catch (e) {
+      console.error('Failed to fetch attachment', e)
+    }
+    return null
+  }
+
   return {
     googleConnected,
     emails,
@@ -453,6 +547,9 @@ export function useGoogleInsights({
     emailError,
     calendarError,
     fetchGoogleData,
-    handleReauthenticate
+    handleReauthenticate,
+    markEmailAsRead,
+    deleteEmail,
+    fetchAttachment
   }
 }

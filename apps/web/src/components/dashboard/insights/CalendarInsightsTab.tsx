@@ -380,7 +380,7 @@ export function CalendarInsightsTab({
                   return (
                     <div
                       key={idx}
-                      className={`group/item flex items-center justify-between gap-3 p-3 border rounded-md transition-all ${
+                      className={`shrink-0 group/item flex items-center justify-between gap-3 p-3 border rounded-md transition-all ${
                         isSelectedDay
                           ? 'bg-muted-foreground/15 border-primary/30 shadow-[0_0_15px_rgba(0,195,235,0.1)]'
                           : 'bg-muted/30 hover:bg-muted/75 border-border/40'
