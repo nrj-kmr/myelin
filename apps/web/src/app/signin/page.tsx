@@ -159,7 +159,7 @@ export default function AuthPage () {
     if (isSupabaseConfigured && supabase) {
       const scopes: string[] = []
       if (emailPermission)
-        scopes.push('https://www.googleapis.com/auth/gmail.readonly')
+        scopes.push('https://www.googleapis.com/auth/gmail.modify')
       if (calendarPermission)
         scopes.push('https://www.googleapis.com/auth/calendar.events')
 
@@ -168,6 +168,10 @@ export default function AuthPage () {
           provider: 'google',
           options: {
             scopes: scopes.join(' '),
+            queryParams: {
+              access_type: 'offline',
+              prompt: 'consent',
+            },
             redirectTo: `${window.location.origin}/auth/callback`
           }
         })
@@ -251,7 +255,7 @@ export default function AuthPage () {
         const { error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
-            scopes: 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/calendar.events',
+            scopes: 'https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/calendar.events',
             queryParams: {
               access_type: 'offline',
               prompt: 'consent',

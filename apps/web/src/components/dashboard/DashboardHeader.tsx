@@ -14,6 +14,7 @@ import { supabase, isSupabaseConfigured } from '@myelin/core'
 import { LS_KEYS } from '@myelin/core'
 import { useUserSession } from '@/hooks/useUserSession'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { useState } from 'react'
 
 interface DashboardHeaderProps {
   userName: string
@@ -32,6 +33,7 @@ export function DashboardHeader ({
   onChangeCurrency
 }: DashboardHeaderProps) {
   const { isOnboarded } = useUserSession()
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
 
   const handleSignOut = async () => {
     if (confirm('Are you sure you want to sign out?')) {
@@ -58,7 +60,7 @@ export function DashboardHeader ({
 
   return (
     <header className='top-0 z-50 sticky bg-card/70 backdrop-blur-md border-border border-b w-full'>
-      <div className='flex justify-between items-center mx-auto px-6 max-w-[1600px] h-16'>
+      <div className='flex justify-between items-center mx-auto px-4 md:px-6 max-w-[1600px] h-16'>
         <div className='flex items-center gap-4'>
           <Link href='/' className='group flex items-center gap-2.5'>
             <div className='flex justify-center items-center bg-secondary shadow-lg shadow-primary/20 rounded-lg w-8 h-8 group-hover:scale-105 transition-all'>
@@ -68,8 +70,8 @@ export function DashboardHeader ({
               Myelin.
             </span>
           </Link>
-          <span className='font-light text-zinc-700'>|</span>
-          <span className='font-semibold text-muted-foreground text-xs'>
+          <span className='hidden sm:inline font-light text-zinc-700'>|</span>
+          <span className='hidden sm:inline-flex font-semibold text-muted-foreground text-xs'>
             Welcome back,{' '}
             <span className='font-mono text-primary'>{userName}</span>
           </span>
@@ -79,8 +81,8 @@ export function DashboardHeader ({
           <ThemeToggle />
 
           {/* Currency Select */}
-          <div className='flex justify-center items-center bg-muted hover:bg-accent px-3 py-2 border border-border rounded-lg text-muted-foreground hover:text-foreground transition-all cursor-pointer'>
-            <span className='font-bold text-xs tracking-wider'>
+          {/* <div className='flex justify-center items-center bg-muted hover:bg-accent px-3 py-2 border border-border rounded-lg text-muted-foreground hover:text-foreground transition-all cursor-pointer'>
+            <span className='hidden sm:block font-bold text-xs tracking-wider'>
               Currency
             </span>
             <select
@@ -107,13 +109,19 @@ export function DashboardHeader ({
                 GBP (£)
               </option>
             </select>
-          </div>
+          </div> */}
 
           {/* User Specific Settings Cog */}
           {isOnboarded ? (
-            <div className='group relative'>
-              <button className='flex items-center gap-2 bg-muted hover:bg-accent px-3 py-1 border border-border rounded-lg transition-all cursor-pointer'>
-                <span className='font-mono font-semibold text-foreground text-xs'>
+            <div
+              className='group relative'
+              onMouseLeave={() => setIsUserMenuOpen(false)}
+            >
+              <button
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                className='flex items-center gap-2 bg-muted hover:bg-accent px-3 py-1 border border-border rounded-lg transition-all cursor-pointer'
+              >
+                <span className='hidden sm:inline font-mono font-semibold text-foreground text-xs'>
                   {userName || 'User'}
                 </span>
                 <div className='flex justify-center items-center bg-primary/20 rounded-full w-6 h-6 text-primary'>
@@ -122,9 +130,15 @@ export function DashboardHeader ({
               </button>
 
               {/* Dropdown Menu */}
-              <div className='invisible group-hover:visible top-full right-0 z-50 absolute flex flex-col bg-card opacity-0 group-hover:opacity-100 shadow-xl mt-2 border border-border rounded-xl w-48 scale-95 group-hover:scale-100 origin-top-right transition-all duration-200 transform'>
+              <div
+                className={`top-full right-0 z-50 absolute flex flex-col bg-card shadow-xl mt-2 border border-border rounded-xl w-48 origin-top-right transition-all duration-200 transform
+                  invisible group-hover:visible group-hover:opacity-100 group-hover:scale-100
+                  ${isUserMenuOpen ? 'opacity-100 scale-100 visible' : 'opacity-0 scale-95'}
+                `}
+              >
                 <Link
                   href='/settings'
+                  onClick={() => setIsUserMenuOpen(false)}
                   className='flex items-center gap-2 hover:bg-muted px-4 py-2 rounded-t-xl text-muted-foreground hover:text-foreground text-xs transition-color'
                 >
                   <Settings className='w-3.5 h-3.5' /> Settings

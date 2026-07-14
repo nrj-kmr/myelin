@@ -176,7 +176,7 @@ export function DayDetailPanel ({
   ]
 
   return (
-    <div className='flex flex-col gap-5 bg-card/65 backdrop-blur-md px-5 py-3 border border-border rounded-md h-full'>
+    <div className='flex flex-col flex-1 gap-5 bg-card/65 backdrop-blur-md px-5 py-3 border border-border rounded-md h-full'>
       {/* Date Header */}
       <div>
         <p className='font-mono font-bold card-text-contrast text-[10px] uppercase tracking-widest'>
@@ -222,7 +222,7 @@ export function DayDetailPanel ({
       </div>
 
       {/* Tab Contents */}
-      <div className='flex flex-col flex-1 min-h-75 overflow-y-auto'>
+      <div className='flex flex-col flex-1 h-full min-h-0 overflow-y-auto'>
         {activeTab === 'journal' && (
           <form
             onSubmit={handleJournalSave}
@@ -297,9 +297,9 @@ export function DayDetailPanel ({
         )}
 
         {activeTab === 'schedule' && (
-          <div className='flex flex-col flex-1 gap-4'>
+          <div className='flex flex-col flex-1 min-h-0 gap-4'>
             {/* Event List */}
-            <div className='flex-1 space-y-2.5'>
+            <div className='flex flex-col flex-1 min-h-0 gap-2.5'>
               <span className='block font-semibold card-text-contrast text-[10px] uppercase tracking-wider'>
                 Upcoming Items
               </span>
@@ -308,7 +308,7 @@ export function DayDetailPanel ({
                   No events scheduled for today. <br /> Schedule Below.
                 </p>
               ) : (
-                <div className='space-y-1.5 pr-1 max-h-45 overflow-y-auto'>
+                <div className='space-y-1.5 pr-1 flex-1 min-h-0 overflow-y-auto'>
                   {log.events.map((evt, idx) => (
                     <div
                       key={idx}
@@ -369,9 +369,9 @@ export function DayDetailPanel ({
         )}
 
         {activeTab === 'ledger' && (
-          <div className='flex flex-col flex-1 gap-4'>
+          <div className='flex flex-col flex-1 min-h-0 gap-4'>
             {/* Expense List */}
-            <div className='flex-1 space-y-2.5'>
+            <div className='flex flex-col flex-1 min-h-0 gap-2.5'>
               <span className='block font-semibold card-text-contrast text-[10px] uppercase tracking-wider'>
                 Expenses Logged
               </span>
@@ -380,7 +380,7 @@ export function DayDetailPanel ({
                   No transactions logged for today. <br /> Add below.
                 </p>
               ) : (
-                <div className='space-y-1.5 pr-1 max-h-45 overflow-y-auto'>
+                <div className='space-y-1.5 pr-1 flex-1 min-h-0 overflow-y-auto'>
                   {log.expenses.map((exp, idx) => (
                     <div
                       key={idx}

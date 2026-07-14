@@ -37,7 +37,7 @@ export function NarrativeWorkspace ({
   }
 
   return (
-    <div className='flex flex-col gap-5 bg-card/65 shadow-xl backdrop-blur-md px-6 py-4 border border-border rounded-md min-h-175'>
+    <div className='flex flex-col gap-5 bg-card/65 shadow-xl backdrop-blur-md px-6 py-4 border border-border rounded-md min-h-0 h-full flex-1'>
       {/* Tab Header Selector */}
       <div className='flex justify-between items-center pb-3 border-border border-b'>
         <div className='flex gap-1 bg-muted p-0.5 border border-border rounded-md font-semibold text-xs'>
@@ -65,10 +65,10 @@ export function NarrativeWorkspace ({
       </div>
 
       {/* Workspace Content rendering based on Tab */}
-      <div className='flex flex-col flex-1'>
+      <div className='flex flex-col flex-1 min-h-0'>
         {/* 1. JOURNAL LOGS TAB */}
         {activeWorkspaceTab === 'journal' && (
-          <div className='flex flex-col gap-4 pr-1 max-h-150 overflow-y-auto animate-fadeIn'>
+          <div className='flex flex-col flex-1 h-full min-h-0 gap-4 pr-1 overflow-y-auto animate-fadeIn'>
             {Object.keys(logs).filter(
               key =>
                 logs[key].journal ||
@@ -172,7 +172,7 @@ export function NarrativeWorkspace ({
 
         {/* 2. EXPENDITURE TAB */}
         {activeWorkspaceTab === 'expenditure' && (
-          <div className='flex flex-col gap-4 pr-1 max-h-150 overflow-y-auto animate-fadeIn'>
+          <div className='flex flex-col flex-1 h-full min-h-0 gap-4 pr-1 overflow-y-auto animate-fadeIn'>
             {Object.keys(logs).filter(
               key => logs[key].expenses && logs[key].expenses.length > 0
             ).length === 0 ? (

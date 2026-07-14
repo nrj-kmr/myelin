@@ -37,11 +37,7 @@ export default function RootLayout ({
     <html
       lang='en'
       suppressHydrationWarning
-      className={cn(
-        'font-sans',
-        plusJakartaSans.variable,
-        outfit.variable
-      )}
+      className={cn('font-sans', plusJakartaSans.variable, outfit.variable)}
     >
       <head>
         <link rel='icon' href='/favicon.ico' sizes='any' />
