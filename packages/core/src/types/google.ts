@@ -9,6 +9,7 @@ export interface EmailItem {
   markedReadLocally?: boolean
   markedDeletedLocally?: boolean
   inlineAttachments?: { cid: string; attachmentId: string | null; data?: string | null; mimeType: string }[]
+  attachments?: { attachmentId: string; filename: string; mimeType: string; size: number }[]
 }
 
 export interface CalendarEventItem {

@@ -2,6 +2,7 @@ export const LS_KEYS = {
   ONBOARDED: "myelin_onboarded",
   USER_NAME: "myelin_user_name",
   USER_EMAIL: "myelin_user_email",
+  AVATAR_URL: "myelin_avatar_url",
   CURRENCY: "myelin_currency",
   THEME: "myelin_theme",
   EMAIL_PERMISSION: "myelin_email_permission",

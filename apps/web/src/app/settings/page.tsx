@@ -11,16 +11,23 @@ import {
   Coins,
   User,
   ShieldCheck,
-  LogOut
+  LogOut,
+  Home
 } from 'lucide-react'
 import { supabase, isSupabaseConfigured } from '@myelin/core'
 import { useUserSession } from '@/hooks/useUserSession'
+import { useSessionStore } from '@/store/useSessionStore'
 import { Button } from '@myelin/ui'
 import { ThemeToggle } from '@/components/ThemeToggle'
 
 export default function SettingsPage () {
   const router = useRouter()
+  const { avatarUrl, initSession } = useSessionStore()
   const [saveSuccess, setSaveSuccess] = useState(false)
+
+  React.useEffect(() => {
+    initSession()
+  }, [initSession])
 
   // Profile States
   const [password, setPassword] = useState('')
@@ -233,7 +240,13 @@ export default function SettingsPage () {
               href='/dashboard'
               className='flex items-center gap-1.5 hover:bg-zinc-200/50 dark:hover:bg-white/5 p-2 rounded-md font-mono font-semibold text-zinc-500 hover:text-foreground dark:text-zinc-400 text-xs uppercase tracking-wider transition-all cursor-pointer'
             >
-              <ArrowLeft className='w-4 h-4' /> Back to Dashboard
+              <ArrowLeft className='w-4 h-4' /> Dashboard
+            </Link>
+            <Link
+              href='/'
+              className='flex items-center gap-1.5 hover:bg-zinc-200/50 dark:hover:bg-white/5 p-2 rounded-md font-mono font-semibold text-zinc-500 hover:text-foreground dark:text-zinc-400 text-xs uppercase tracking-wider transition-all cursor-pointer'
+            >
+              <Home className='w-4 h-4' /> Home
             </Link>
             <span className='font-light text-zinc-700'>|</span>
             <span className='font-mono font-bold text-foreground text-sm uppercase tracking-tight'>
@@ -335,8 +348,12 @@ export default function SettingsPage () {
                 {/* Connection Status */}
                 <div className='flex justify-between items-center bg-secondary/80 p-3.5 border border-secondary/20 rounded-md'>
                   <div className='flex items-center gap-3'>
-                    <div className='flex justify-center items-center bg-primary/10 rounded-full w-8 h-8 font-bold text-primary text-sm'>
-                      {sessionName ? sessionName[0] : 'G'}
+                    <div className='flex justify-center items-center bg-primary/10 rounded-full w-8 h-8 overflow-hidden font-bold text-primary text-sm'>
+                      {avatarUrl ? (
+                        <img src={avatarUrl} alt="Google Avatar" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                      ) : (
+                        sessionName ? sessionName[0] : 'G'
+                      )}
                     </div>
                     <div className='flex flex-col'>
                       <span className='font-bold text-primary text-xs'>

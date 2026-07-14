@@ -14,6 +14,7 @@ export async function GET(request: Request) {
         const user = data.user;
         const name = user.user_metadata?.full_name || user.email?.split("@")[0] || "Google User";
         const email = user.email || "";
+        const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture || null;
 
         // Synchronize authenticated user profile to local PostgreSQL database
         const syncUrl = new URL("/api/user/sync", requestUrl.origin);
@@ -23,6 +24,7 @@ export async function GET(request: Request) {
           body: JSON.stringify({
             name,
             email,
+            avatarUrl,
             currency: "USD",
             theme: "dark",
             emailPermission: true,

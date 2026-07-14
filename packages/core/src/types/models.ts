@@ -28,6 +28,7 @@ export interface Expense {
 export interface UserSessionData {
   name: string;
   email: string;
+  avatarUrl?: string | null;
   currency: string;
   theme: "light" | "dark";
   emailPermission: boolean;

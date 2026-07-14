@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { Mail, Calendar as CalIcon, Brain, Sparkles, ArrowLeft } from 'lucide-react'
+import { Mail, Calendar as CalIcon, Brain, Sparkles, ArrowLeft, Paperclip } from 'lucide-react'
 
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader'
 import { IntelligentInsights } from '@/components/dashboard/IntelligentInsights'
@@ -190,10 +190,7 @@ export default function InsightsPage () {
             if (att.data) {
               // Image data was small enough to be included natively
               const base64 = att.data.replace(/-/g, '+').replace(/_/g, '/')
-              html = html.replace(
-                `cid:${att.cid}`,
-                `data:${att.mimeType};base64,${base64}`
-              )
+              html = html.split(`cid:${att.cid}`).join(`data:${att.mimeType};base64,${base64}`)
             } else if (token && att.attachmentId) {
               // Image data needs to be fetched from Google API
               const res = await fetch(
@@ -206,10 +203,7 @@ export default function InsightsPage () {
                 const data = await res.json()
                 if (data.data) {
                   const base64 = data.data.replace(/-/g, '+').replace(/_/g, '/')
-                  html = html.replace(
-                    `cid:${att.cid}`,
-                    `data:${att.mimeType};base64,${base64}`
-                  )
+                  html = html.split(`cid:${att.cid}`).join(`data:${att.mimeType};base64,${base64}`)
                 }
               }
             }
@@ -323,7 +317,7 @@ export default function InsightsPage () {
             {activePageTab === 'calendar' && showMobileCalendarDetail && (
               <button
                 onClick={() => setShowMobileCalendarDetail(false)}
-                className='lg:hidden flex items-center gap-2 p-2 -mb-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 w-fit transition-colors'
+                className='lg:hidden flex items-center gap-2 hover:bg-muted/50 -mb-2 p-2 rounded-md w-fit text-muted-foreground hover:text-foreground transition-colors'
               >
                 <ArrowLeft className='w-4 h-4' /> Back to Calendar
               </button>
@@ -362,7 +356,7 @@ export default function InsightsPage () {
                     {/* Back button for mobile */}
                     <button
                       onClick={() => setSelectedEmail(null)}
-                      className='lg:hidden flex items-center gap-2 mb-4 p-2 -ml-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 w-fit transition-colors'
+                      className='lg:hidden flex items-center gap-2 hover:bg-muted/50 mb-4 -ml-2 p-2 rounded-md w-fit text-muted-foreground hover:text-foreground transition-colors'
                     >
                       <ArrowLeft className='w-4 h-4' /> Back to Inbox
                     </button>
@@ -413,6 +407,27 @@ export default function InsightsPage () {
                             <FormattedEmailContent
                               content={selectedEmail.content || ''}
                             />
+                          </div>
+                        )}
+                        {/* Attachments Section */}
+                        {selectedEmail.attachments && selectedEmail.attachments.length > 0 && (
+                          <div className='bg-muted/30 p-4 border-border/50 border-t'>
+                            <h4 className='mb-3 font-mono font-bold text-muted-foreground text-xs uppercase tracking-wider'>
+                              Attachments ({selectedEmail.attachments.length})
+                            </h4>
+                            <div className='flex flex-wrap gap-2'>
+                              {selectedEmail.attachments.map((att: any, idx: number) => (
+                                <div key={idx} className='flex items-center gap-2 bg-background px-3 py-2 border border-border rounded-md text-sm transition-colors'>
+                                  <Paperclip className='w-4 h-4 text-muted-foreground' />
+                                  <span className='max-w-50 text-foreground text-xs line-clamp-1'>
+                                    {att.filename}
+                                  </span>
+                                  <span className='text-[10px] text-muted-foreground'>
+                                    ({Math.round(att.size / 1024)} KB)
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         )}
                       </div>

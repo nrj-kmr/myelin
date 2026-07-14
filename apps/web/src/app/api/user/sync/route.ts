@@ -7,7 +7,7 @@ export async function POST(request: Request) {
     await ensureTablesExist();
 
     const body = await request.json();
-    const { name, email, currency, theme, emailPermission, calendarPermission } = body;
+    const { name, email, currency, theme, emailPermission, calendarPermission, avatarUrl } = body;
 
     if (!email) {
       return NextResponse.json({ error: "User email is required for database synchronization" }, { status: 400 });
@@ -33,6 +33,7 @@ export async function POST(request: Request) {
       const inserted = await db.insert(users).values({
         name: name || formattedName,
         email: email,
+        avatarUrl: avatarUrl || null,
         currency: currency || "USD",
         theme: theme || "dark",
         emailPermission: emailPermission !== undefined ? emailPermission : false,
@@ -47,6 +48,7 @@ export async function POST(request: Request) {
       const updated = await db.update(users)
         .set({          
           name: name !== undefined ? name : existingUsers[0].name,
+          avatarUrl: avatarUrl !== undefined ? avatarUrl : existingUsers[0].avatarUrl,
           currency: currency !== undefined ? currency : existingUsers[0].currency,
           theme: theme !== undefined ? theme : existingUsers[0].theme,
           emailPermission: emailPermission !== undefined ? emailPermission : existingUsers[0].emailPermission,
