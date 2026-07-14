@@ -13,12 +13,18 @@ import {
   LayoutDashboard
 } from 'lucide-react'
 import { useUserSession } from '@/hooks/useUserSession'
+import { useSessionStore } from '@/store/useSessionStore'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { supabase, isSupabaseConfigured, LS_KEYS } from '@myelin/core'
 
 export function Header () {
   const router = useRouter()
   const { isOnboarded, userName } = useUserSession()
+  const { avatarUrl, initSession } = useSessionStore()
+
+  React.useEffect(() => {
+    initSession()
+  }, [initSession])
 
   const handleSignOut = async () => {
     if (confirm('Are you sure you want to sign out?')) {
@@ -81,8 +87,12 @@ export function Header () {
                 <span className='font-mono font-semibold text-foreground text-xs'>
                   {userName || 'User'}
                 </span>
-                <div className='flex justify-center items-center bg-primary/20 rounded-full w-6 h-6 text-primary'>
-                  <User className='w-3 h-3' />
+                <div className='flex justify-center items-center bg-primary/20 rounded-full w-6 h-6 overflow-hidden text-primary'>
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="User Avatar" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                  ) : (
+                    <User className='w-3 h-3' />
+                  )}
                 </div>
               </button>
 

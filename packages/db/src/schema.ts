@@ -4,6 +4,7 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
   email: varchar("email", { length: 255 }).notNull().unique(),
+  avatarUrl: text("avatar_url"),
   currency: varchar("currency", { length: 10 }).default("USD").notNull(),
   theme: varchar("theme", { length: 10 }).default("dark").notNull(),
   emailPermission: boolean("email_permission").default(false).notNull(),

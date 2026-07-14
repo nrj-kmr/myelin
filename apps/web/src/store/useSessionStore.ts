@@ -6,6 +6,7 @@ interface SessionState {
   isOnboarded: boolean
   userName: string
   userEmail: string
+  avatarUrl: string | null
   currency: string
   theme: 'light' | 'dark'
   emailPermission: boolean
@@ -23,6 +24,7 @@ export const useSessionStore = create<SessionState>((set, get) => ({
   isOnboarded: false,
   userName: '',
   userEmail: '',
+  avatarUrl: null,
   currency: 'USD',
   theme: 'dark',
   emailPermission: false,
@@ -41,12 +43,17 @@ export const useSessionStore = create<SessionState>((set, get) => ({
         if (session?.user) {
           const user = session.user
           const name = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Google User'
+          const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture || null
           const email = user.email || ''
 
           if (user.app_metadata?.provider === 'google' || user.app_metadata?.providers?.includes('google')) {
             localStorage.setItem(LS_KEYS.GOOGLE_CONNECTED, 'true')
             localStorage.setItem(LS_KEYS.GOOGLE_EMAIL, email)
             localStorage.setItem(LS_KEYS.GOOGLE_NAME, name)
+          }
+
+          if (avatarUrl) {
+            localStorage.setItem(LS_KEYS.AVATAR_URL, avatarUrl)
           }
 
           try {
@@ -63,6 +70,7 @@ export const useSessionStore = create<SessionState>((set, get) => ({
                 isOnboarded: true,
                 userName: dbUser.name,
                 userEmail: dbUser.email,
+                avatarUrl: avatarUrl || dbUser.avatarUrl || null,
                 currency: dbUser.currency,
                 emailPermission: dbUser.emailPermission,
                 calendarPermission: dbUser.calendarPermission,
@@ -86,6 +94,7 @@ export const useSessionStore = create<SessionState>((set, get) => ({
             isOnboarded: true,
             userName: name,
             userEmail: email,
+            avatarUrl: avatarUrl || null,
             currency: 'USD',
             theme: savedTheme,
             emailPermission: true,
@@ -118,6 +127,7 @@ export const useSessionStore = create<SessionState>((set, get) => ({
       set({
         userName: localStorage.getItem(LS_KEYS.USER_NAME) || formattedFallback || 'user',
         userEmail: emailVal,
+        avatarUrl: localStorage.getItem(LS_KEYS.AVATAR_URL) || null,
         currency: localStorage.getItem(LS_KEYS.CURRENCY) || 'USD',
         theme: savedTheme,
         emailPermission: localStorage.getItem(LS_KEYS.EMAIL_PERMISSION) === 'true',

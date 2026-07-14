@@ -199,10 +199,11 @@ export function useGoogleInsights({
 
                 const getBodyData = (
                   payload: any
-                ): { content: string; isHtml: boolean; inlineAttachments: any[] } => {
+                ): { content: string; isHtml: boolean; inlineAttachments: any[]; attachments: any[] } => {
                   let htmlData = ''
                   let plainData = ''
                   const inlineAttachments: any[] = []
+                  const attachments: any[] = []
 
                   const searchParts = (parts: any[]) => {
                     for (const part of parts) {
@@ -213,7 +214,16 @@ export function useGoogleInsights({
                         part.body?.data
                       ) {
                         plainData = part.body.data
+                      } else if (part.filename && part.body?.attachmentId) {
+                        // Regular attachment
+                        attachments.push({
+                          attachmentId: part.body.attachmentId,
+                          filename: part.filename,
+                          mimeType: part.mimeType,
+                          size: part.body.size
+                        })
                       } else if (part.headers) {
+                        // Check for inline attachment (Content-ID)
                         const cidHeader = part.headers.find(
                           (h: any) => h.name.toLowerCase() === 'content-id'
                         )
@@ -242,14 +252,15 @@ export function useGoogleInsights({
                   }
 
                   if (htmlData)
-                    return { content: decodeBase64UTF8(htmlData), isHtml: true, inlineAttachments }
+                    return { content: decodeBase64UTF8(htmlData), isHtml: true, inlineAttachments, attachments }
                   if (plainData)
                     return {
                       content: decodeBase64UTF8(plainData),
                       isHtml: false,
-                      inlineAttachments
+                      inlineAttachments,
+                      attachments
                     }
-                  return { content: '', isHtml: false, inlineAttachments }
+                  return { content: '', isHtml: false, inlineAttachments, attachments }
                 }
 
                 const bodyData = getBodyData(detail.payload)
@@ -262,6 +273,7 @@ export function useGoogleInsights({
                   content: bodyData.content,
                   isHtml: bodyData.isHtml,
                   inlineAttachments: bodyData.inlineAttachments,
+                  attachments: bodyData.attachments,
                   time: new Date(
                     Number(detail.internalDate)
                   ).toLocaleString([], {

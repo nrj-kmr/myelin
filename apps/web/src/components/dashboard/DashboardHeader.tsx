@@ -13,6 +13,7 @@ import {
 import { supabase, isSupabaseConfigured } from '@myelin/core'
 import { LS_KEYS } from '@myelin/core'
 import { useUserSession } from '@/hooks/useUserSession'
+import { useSessionStore } from '@/store/useSessionStore'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { useState } from 'react'
 
@@ -33,7 +34,12 @@ export function DashboardHeader ({
   onChangeCurrency
 }: DashboardHeaderProps) {
   const { isOnboarded } = useUserSession()
+  const { avatarUrl, initSession } = useSessionStore()
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+
+  React.useEffect(() => {
+    initSession()
+  }, [initSession])
 
   const handleSignOut = async () => {
     if (confirm('Are you sure you want to sign out?')) {
@@ -80,37 +86,6 @@ export function DashboardHeader ({
         <div className='flex items-center gap-3'>
           <ThemeToggle />
 
-          {/* Currency Select */}
-          {/* <div className='flex justify-center items-center bg-muted hover:bg-accent px-3 py-2 border border-border rounded-lg text-muted-foreground hover:text-foreground transition-all cursor-pointer'>
-            <span className='hidden sm:block font-bold text-xs tracking-wider'>
-              Currency
-            </span>
-            <select
-              value={currency}
-              onChange={e => onChangeCurrency(e.target.value)}
-              className='bg-transparent p-0 border-0 focus:outline-none focus:ring-0 font-semibold text-zinc-500 dark:text-zinc-300 text-xs cursor-pointer select-none'
-            >
-              <option value='USD' className='bg-panel-bg text-foreground'>
-                USD ($)
-              </option>
-              <option value='INR' className='bg-panel-bg text-foreground'>
-                INR (₹)
-              </option>
-              <option value='EUR' className='bg-panel-bg text-foreground'>
-                EUR (€)
-              </option>
-              <option value='THB' className='bg-panel-bg text-foreground'>
-                THB (฿)
-              </option>
-              <option value='JPY' className='bg-panel-bg text-foreground'>
-                JPY (¥)
-              </option>
-              <option value='GBP' className='bg-panel-bg text-foreground'>
-                GBP (£)
-              </option>
-            </select>
-          </div> */}
-
           {/* User Specific Settings Cog */}
           {isOnboarded ? (
             <div
@@ -119,19 +94,23 @@ export function DashboardHeader ({
             >
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className='flex items-center gap-2 bg-muted hover:bg-accent px-3 py-1 border border-border rounded-lg transition-all cursor-pointer'
+                className='flex items-center gap-2 bg-muted hover:bg-accent px-3 py-1 border border-border rounded-lg hover:scale-105 transition-all cursor-pointer'
               >
                 <span className='hidden sm:inline font-mono font-semibold text-foreground text-xs'>
                   {userName || 'User'}
                 </span>
-                <div className='flex justify-center items-center bg-primary/20 rounded-full w-6 h-6 text-primary'>
-                  <User className='w-3 h-3' />
+                <div className='flex justify-center items-center bg-primary/20 rounded-full w-6 h-6 overflow-hidden text-primary'>
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="User Avatar" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                  ) : (
+                    <User className='w-3 h-3' />
+                  )}
                 </div>
               </button>
 
               {/* Dropdown Menu */}
               <div
-                className={`top-full right-0 z-50 absolute flex flex-col bg-card shadow-xl mt-2 border border-border rounded-xl w-48 origin-top-right transition-all duration-200 transform
+                className={`top-full right-0 z-50 absolute flex flex-col bg-card shadow-xl mt-2 border border-border rounded-md w-48 origin-top-right transition-all duration-200 transform
                   invisible group-hover:visible group-hover:opacity-100 group-hover:scale-100
                   ${isUserMenuOpen ? 'opacity-100 scale-100 visible' : 'opacity-0 scale-95'}
                 `}
@@ -139,14 +118,14 @@ export function DashboardHeader ({
                 <Link
                   href='/settings'
                   onClick={() => setIsUserMenuOpen(false)}
-                  className='flex items-center gap-2 hover:bg-muted px-4 py-2 rounded-t-xl text-muted-foreground hover:text-foreground text-xs transition-color'
+                  className='flex items-center gap-2 hover:bg-muted px-4 py-2 rounded-t-mdl text-muted-foreground hover:text-foreground text-xs transition-color'
                 >
                   <Settings className='w-3.5 h-3.5' /> Settings
                 </Link>
                 <div className='border-border border-t' />
                 <button
                   onClick={handleSignOut}
-                  className='flex items-center gap-2 hover:bg-red-500/10 px-4 py-2 rounded-b-xl w-full text-red-500 text-xs text-left transition-colors'
+                  className='flex items-center gap-2 hover:bg-red-500/10 px-4 py-2 rounded-b-md w-full text-red-500 text-xs text-left transition-colors'
                 >
                   <LogOut className='w-3.5 h-3.5' /> Sign Out
                 </button>
@@ -156,7 +135,7 @@ export function DashboardHeader ({
             <>
               <Link
                 href='/signin'
-                className='bg-primary hover:bg-primary/90 px-4 py-2 rounded-md font-medium text-primary-foreground text-sm transition-colors cursor-pointer'
+                className='bg-primary hover:bg-primary/90 px-3 py-1.5 rounded-md font-medium text-primary-foreground text-sm hover:scale-105 transition-all cursor-pointer'
               >
                 Sign In
               </Link>
