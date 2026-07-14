@@ -81,7 +81,7 @@ export function DashboardHeader ({
           <ThemeToggle />
 
           {/* Currency Select */}
-          <div className='flex justify-center items-center bg-muted hover:bg-accent px-3 py-2 border border-border rounded-lg text-muted-foreground hover:text-foreground transition-all cursor-pointer'>
+          {/* <div className='flex justify-center items-center bg-muted hover:bg-accent px-3 py-2 border border-border rounded-lg text-muted-foreground hover:text-foreground transition-all cursor-pointer'>
             <span className='hidden sm:block font-bold text-xs tracking-wider'>
               Currency
             </span>
@@ -109,7 +109,7 @@ export function DashboardHeader ({
                 GBP (£)
               </option>
             </select>
-          </div>
+          </div> */}
 
           {/* User Specific Settings Cog */}
           {isOnboarded ? (

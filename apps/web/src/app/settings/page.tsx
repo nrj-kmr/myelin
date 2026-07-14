@@ -59,7 +59,13 @@ export default function SettingsPage () {
       setEmailPermission(sessionEmailPermission)
       setCalendarPermission(sessionCalendarPermission)
     }
-  }, [isSessionLoaded, sessionName, sessionCurrency, sessionEmailPermission, sessionCalendarPermission])
+  }, [
+    isSessionLoaded,
+    sessionName,
+    sessionCurrency,
+    sessionEmailPermission,
+    sessionCalendarPermission
+  ])
 
   useEffect(() => {
     const loadExtraPreferences = async () => {
@@ -68,7 +74,9 @@ export default function SettingsPage () {
       let isGoogle = false
       if (isSupabaseConfigured && supabase) {
         try {
-          const { data: { session } } = await supabase.auth.getSession()
+          const {
+            data: { session }
+          } = await supabase.auth.getSession()
           isGoogle = session?.user?.app_metadata?.provider === 'google'
         } catch (e) {
           console.warn('Failed to check Google session:', e)
@@ -223,7 +231,7 @@ export default function SettingsPage () {
           <div className='flex items-center gap-4'>
             <Link
               href='/dashboard'
-              className='flex items-center gap-1.5 hover:bg-zinc-200/50 dark:hover:bg-white/5 p-2 rounded-lg font-mono font-semibold text-zinc-500 hover:text-foreground dark:text-zinc-400 text-xs uppercase tracking-wider transition-all cursor-pointer'
+              className='flex items-center gap-1.5 hover:bg-zinc-200/50 dark:hover:bg-white/5 p-2 rounded-md font-mono font-semibold text-zinc-500 hover:text-foreground dark:text-zinc-400 text-xs uppercase tracking-wider transition-all cursor-pointer'
             >
               <ArrowLeft className='w-4 h-4' /> Back to Dashboard
             </Link>
@@ -235,12 +243,12 @@ export default function SettingsPage () {
 
           <div className='flex items-center gap-2'>
             <ThemeToggle />
-            <Button
+            <button
               onClick={handleSignOut}
-              className='flex items-center gap-1 bg-red-500/10 hover:bg-red-500/20border border-red-500/10 rounded-lg font-mono font-semibold text-red-500 text-xs transition-all cursor-pointer'
+              className='flex items-center gap-1 bg-red-500/10 hover:bg-red-500/20 shadow-lg shadow-primary/20 px-3 py-2 border border-red-500/10 rounded-md font-mono font-semibold text-red-500 text-xs transition-all cursor-pointer'
             >
               <LogOut className='w-3.5 h-3.5' /> SIGN OUT
-            </Button>
+            </button>
           </div>
         </div>
       </header>
@@ -255,7 +263,7 @@ export default function SettingsPage () {
 
         <form onSubmit={handleSave} className='flex flex-col gap-8'>
           {/* Profile Section */}
-          <div className='flex flex-col gap-4 bg-card/65 shadow-xl backdrop-blur-md p-6 border border-border rounded-2xl'>
+          <div className='flex flex-col gap-4 bg-card/65 shadow-xl backdrop-blur-md p-6 border border-border rounded-xl'>
             <h2 className='flex items-center gap-2 pb-2 border-border border-b font-mono font-bold text-primary text-xs uppercase tracking-widest'>
               <User className='w-4 h-4' /> 01. Profile Details
             </h2>
@@ -269,7 +277,7 @@ export default function SettingsPage () {
                   type='text'
                   value={name}
                   onChange={e => setName(e.target.value)}
-                  className='bg-background px-4 py-2.5 border border-border focus:border-primary/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/15 w-full text-foreground text-xs transition-all'
+                  className='bg-background px-4 py-2.5 border border-border focus:border-primary/50 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/15 w-full text-foreground text-xs transition-all'
                   required
                 />
               </div>
@@ -281,7 +289,7 @@ export default function SettingsPage () {
                   type='email'
                   value={email}
                   disabled
-                  className='bg-background/50 px-4 py-2.5 border border-border rounded-xl w-full text-muted-foreground text-xs cursor-not-allowed'
+                  className='bg-background/50 px-4 py-2.5 border border-border rounded-md w-full text-muted-foreground text-xs cursor-not-allowed'
                   required
                 />
               </div>
@@ -289,19 +297,22 @@ export default function SettingsPage () {
           </div>
 
           {/* Preferences Section */}
-          <div className='flex flex-col gap-4 bg-card/65 shadow-xl backdrop-blur-md p-6 border border-border rounded-2xl'>
+          <div className='flex flex-col gap-4 bg-card/65 shadow-xl backdrop-blur-md p-6 border border-border rounded-xl'>
             <h2 className='flex items-center gap-2 pb-2 border-border border-b font-mono font-bold text-primary text-xs uppercase tracking-widest'>
               <Coins className='w-4 h-4' /> 02. Ledger Preferences
             </h2>
 
-            <div className='flex flex-col gap-1.5 max-w-xs'>
-              <label className='font-mono font-bold text-[10px] text-muted-foreground uppercase tracking-wider'>
+            <div className='relative flex justify-between items-center bg-muted hover:bg-accent px-4 py-2.5 border border-border rounded-md max-w-xs overflow-hidden text-muted-foreground hover:text-foreground transition-all cursor-pointer'>
+              <span className='font-mono font-bold text-[10px] uppercase tracking-wider pointer-events-none'>
                 Display Currency
-              </label>
+              </span>
+              <div className='font-semibold text-foreground text-xs pointer-events-none'>
+                {currency}
+              </div>
               <select
                 value={currency}
                 onChange={e => setCurrency(e.target.value)}
-                className='bg-background px-4 py-2.5 border border-border focus:border-secondary/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-secondary/15 w-full text-foreground text-xs transition-all cursor-pointer'
+                className='absolute inset-0 opacity-0 w-full h-full cursor-pointer'
               >
                 <option value='USD'>USD ($) - US Dollar</option>
                 <option value='INR'>INR (₹) - Indian Rupee</option>
@@ -315,16 +326,16 @@ export default function SettingsPage () {
 
           {/* Google Integration Card (only visible if googleConnected is verified) */}
           {googleConnected && (
-            <div className='flex flex-col gap-4 bg-card shadow-xl backdrop-blur-md p-6 border border-border rounded-2xl'>
+            <div className='flex flex-col gap-4 bg-card shadow-xl backdrop-blur-md p-6 border border-border rounded-xl'>
               <h2 className='flex items-center gap-2 pb-2 border-border border-b font-mono font-bold text-primary text-xs uppercase tracking-widest'>
                 <Mail className='w-4 h-4' /> 03. Google Integrations
               </h2>
 
               <div className='flex flex-col gap-4'>
                 {/* Connection Status */}
-                <div className='flex justify-between items-center bg-secondary/10 p-3.5 border border-secondary/20 rounded-xl'>
+                <div className='flex justify-between items-center bg-secondary/80 p-3.5 border border-secondary/20 rounded-md'>
                   <div className='flex items-center gap-3'>
-                    <div className='flex justify-center items-center bg-secondary rounded-full w-8 h-8 font-bold text-primary text-sm'>
+                    <div className='flex justify-center items-center bg-primary/10 rounded-full w-8 h-8 font-bold text-primary text-sm'>
                       {sessionName ? sessionName[0] : 'G'}
                     </div>
                     <div className='flex flex-col'>
@@ -339,20 +350,18 @@ export default function SettingsPage () {
                   <button
                     type='button'
                     onClick={handleGoogleDisconnect}
-                    className='flex items-center gap-1 hover:bg-red-500/10 px-3 py-1.5 border border-transparent hover:border-red-500/20 rounded-lg font-mono font-bold text-[10px] text-red-500 uppercase tracking-wide transition-all cursor-pointer'
+                    className='flex items-center gap-1 hover:bg-red-500/10 px-3 py-1.5 border border-transparent hover:border-red-500/20 rounded-md font-mono font-bold text-[10px] text-red-500 uppercase tracking-wide transition-all cursor-pointer'
                   >
                     <LogOut className='w-3.5 h-3.5' /> Disconnect
                   </button>
                 </div>
-
-
               </div>
             </div>
           )}
 
           {/* Password Security Section (only applicable if they registered with credentials) */}
           {!googleConnected && (
-            <div className='flex flex-col gap-4 bg-card shadow-xl backdrop-blur-md p-6 border border-border rounded-2xl'>
+            <div className='flex flex-col gap-4 bg-card shadow-xl backdrop-blur-md p-6 border border-border rounded-xl'>
               <h2 className='flex items-center gap-2 pb-2 border-border border-b font-mono font-bold text-primary text-xs uppercase tracking-widest'>
                 <Key className='w-4 h-4' /> 03. Security Configuration
               </h2>
@@ -368,7 +377,7 @@ export default function SettingsPage () {
                         type='password'
                         value={password}
                         disabled
-                        className='bg-background/50 px-4 py-2.5 border border-border rounded-xl w-full text-muted-foreground/60 text-xs'
+                        className='bg-background/50 px-4 py-2.5 border border-border rounded-md w-full text-muted-foreground/60 text-xs'
                       />
                     </div>
                     <div className='hidden md:flex flex-col gap-1.5' />
@@ -384,7 +393,7 @@ export default function SettingsPage () {
                     placeholder='Enter new password'
                     value={newPassword}
                     onChange={e => setNewPassword(e.target.value)}
-                    className='bg-background px-4 py-2.5 border border-border focus:border-primary/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/15 w-full text-foreground text-xs transition-all'
+                    className='bg-background px-4 py-2.5 border border-border focus:border-primary/50 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/15 w-full text-foreground text-xs transition-all'
                   />
                 </div>
                 <div className='flex flex-col gap-1.5'>
@@ -396,7 +405,7 @@ export default function SettingsPage () {
                     placeholder='Confirm new password'
                     value={confirmPassword}
                     onChange={e => setConfirmPassword(e.target.value)}
-                    className='bg-background px-4 py-2.5 border border-border focus:border-primary/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/15 w-full text-foreground text-xs transition-all'
+                    className='bg-background px-4 py-2.5 border border-border focus:border-primary/50 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/15 w-full text-foreground text-xs transition-all'
                   />
                 </div>
               </div>
@@ -404,22 +413,17 @@ export default function SettingsPage () {
           )}
 
           {/* Form Actions */}
-          <div className='flex justify-between items-center pt-4 border-border border-t'>
-            <span className='flex items-center gap-1 font-mono text-[10px] text-muted-foreground'>
-              <ShieldCheck className='w-3.5 h-3.5' /> Settings Calibrated
-              Locally
-            </span>
-
+          <div className='flex justify-end items-center'>
             <div className='flex gap-3'>
               <Link
                 href='/dashboard'
-                className='bg-muted hover:bg-accent px-6 py-2.5 border border-border rounded-xl font-mono font-bold text-xs text-center tracking-wider transition-all cursor-pointer'
+                className='bg-muted hover:bg-accent shadow-lg shadow-primary/20 px-6 py-2.5 border border-border rounded-md font-mono font-bold text-xs text-center tracking-wider transition-all cursor-pointer'
               >
                 CANCEL
               </Link>
               <button
                 type='submit'
-                className='bg-primary hover:opacity-90 shadow-md shadow-primary/25 px-6 py-2.5 rounded-xl font-mono font-bold text-primary-foreground text-xs tracking-wider active:scale-95 transition-all cursor-pointer'
+                className='bg-primary hover:opacity-90 shadow-lg shadow-primary/20 px-6 py-2.5 rounded-md font-mono font-bold text-primary-foreground text-xs tracking-wider active:scale-95 transition-all cursor-pointer primary/20'
               >
                 SAVE PREFERENCES
               </button>

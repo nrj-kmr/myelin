@@ -270,7 +270,9 @@ export function CalendarInsightsTab({
                 {addingEventDate && (
                   <div className='flex flex-col gap-2 bg-muted/60 p-3 border border-primary/40 rounded-md animate-fadeIn'>
                     <div className='flex items-center gap-2 font-mono font-bold text-[10px] text-primary uppercase tracking-widest'>
-                      <Calendar className='w-3 h-3' /> New Event ({addingEventDate})
+                      <Calendar className='w-3 h-3' /> New Event (
+                      {selectedDate && `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`}
+                      )
                     </div>
                     <input
                       autoFocus
@@ -288,8 +290,11 @@ export function CalendarInsightsTab({
                       />
                       <button
                         onClick={() => {
-                          if (onAddEvent && newEventTitle.trim()) {
-                            onAddEvent(addingEventDate, newEventTitle.trim(), newEventTime)
+                          if (onAddEvent && newEventTitle.trim() && selectedDate) {
+                            const y = selectedDate.getFullYear()
+                            const m = String(selectedDate.getMonth() + 1).padStart(2, '0')
+                            const d = String(selectedDate.getDate()).padStart(2, '0')
+                            onAddEvent(`${y}-${m}-${d}`, newEventTitle.trim(), newEventTime)
                             setAddingEventDate(null)
                           }
                         }}
@@ -321,7 +326,7 @@ export function CalendarInsightsTab({
                     isSelectedDay = evt.dateKey === `${y}-${m}-${d}`
                   }
 
-                  const isCustom = evt.platform === 'Custom Event'
+                  const isCustom = evt.platform === 'Custom'
 
                   if (isEditing) {
                     return (

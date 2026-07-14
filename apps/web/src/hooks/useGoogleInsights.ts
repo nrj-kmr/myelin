@@ -226,7 +226,7 @@ export function useGoogleInsights({
                           })
                         }
                       }
-                      
+
                       if (part.parts && part.parts.length > 0) {
                         searchParts(part.parts)
                       }
@@ -264,7 +264,9 @@ export function useGoogleInsights({
                   inlineAttachments: bodyData.inlineAttachments,
                   time: new Date(
                     Number(detail.internalDate)
-                  ).toLocaleTimeString([], {
+                  ).toLocaleString([], {
+                    month: 'short',
+                    day: 'numeric',
                     hour: '2-digit',
                     minute: '2-digit'
                   })
@@ -425,7 +427,7 @@ export function useGoogleInsights({
             combinedEvents.push({
               title: evt.title,
               time: evt.time,
-              platform: 'Custom Event',
+              platform: 'Custom',
               dateKey: dateKey,
               originalIndex: index
             })
