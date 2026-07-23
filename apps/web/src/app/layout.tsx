@@ -45,7 +45,7 @@ export default function RootLayout ({
       className={cn('font-sans', inter.variable, newsreader.variable, geistMono.variable)}
     >
       <head>
-        <link rel='icon' href='/favicon.ico' sizes='any' />
+        <link rel='icon' href='/logo.svg' type='image/svg+xml' />
         <Script id='theme-script'>
           {`
             try {
