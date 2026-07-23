@@ -23,6 +23,7 @@ export async function ensureTablesExist() {
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         email VARCHAR(255) NOT NULL UNIQUE,
+        avatar_url TEXT,
         currency VARCHAR(10) DEFAULT 'INR' NOT NULL,
         theme VARCHAR(10) DEFAULT 'dark' NOT NULL,
         email_permission BOOLEAN DEFAULT false NOT NULL,
@@ -30,6 +31,12 @@ export async function ensureTablesExist() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
       );
     `);
+
+    try {
+      await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT;`);
+    } catch (e) {
+      console.log('Column avatar_url might already exist');
+    }
 
     // 2. Create journal_entries table
     await client.query(`

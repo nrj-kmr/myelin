@@ -15,29 +15,13 @@ export function InsightsHeader({ isDedicatedPage, forceTab }: InsightsHeaderProp
 
   return (
     <>
-      {/* Title Header */}
-      <div className='z-10 flex justify-between items-center pb-2 border-border border-b'>
-        <div className='flex items-center gap-2'>
-          <Sparkles className='w-5 h-5 text-primary animate-pulse' />
-          <h4 className='font-mono font-bold text-foreground text-sm uppercase tracking-tight'>
-            Intelligent AI Insights
-          </h4>
-        </div>
-        {!isDedicatedPage && (
-          <Link
-            href='/insights'
-            className='group flex justify-center items-center hover:bg-muted px-2 py-1 rounded-md text-muted-foreground hover:text-primary transition-colors'
-            title='View Full Insights'
-          >
-            <ArrowRight className='w-4 h-4 group-hover:scale-105 transition-all' />
-          </Link>
-        )}
-      </div>
+
 
       {/* Tab Selector */}
       {!forceTab && (
-        <div className='z-10 flex gap-1 bg-muted p-0.5 border border-border rounded-md w-full overflow-hidden font-semibold text-xs'>
-          <button
+        <div className='z-10 flex gap-2 w-full'>
+          <div className='flex flex-1 gap-1 bg-muted p-0.5 border border-border rounded-md overflow-hidden font-semibold text-xs'>
+            <button
             onClick={() => setActiveTab('mail')}
             className={`flex-1 justify-center px-2 py-2 rounded-md transition-all cursor-pointer flex items-center gap-1.5 font-mono uppercase tracking-wider text-[10px] min-w-0 ${
               activeTab === 'mail'
@@ -59,6 +43,16 @@ export function InsightsHeader({ isDedicatedPage, forceTab }: InsightsHeaderProp
             <Calendar className='w-3.5 h-3.5 shrink-0' />{' '}
             <span className='truncate'>Upcoming Events</span>
           </button>
+          </div>
+          {!isDedicatedPage && (
+            <Link
+              href='/insights'
+              className='group flex justify-center items-center hover:bg-muted bg-card px-3 border border-border rounded-md text-muted-foreground hover:text-primary transition-colors shrink-0'
+              title='View Full Insights'
+            >
+              <ArrowRight className='w-4 h-4 group-hover:scale-105 transition-transform' />
+            </Link>
+          )}
         </div>
       )}
     </>

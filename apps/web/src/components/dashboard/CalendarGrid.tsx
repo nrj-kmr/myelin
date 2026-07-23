@@ -103,17 +103,17 @@ export function CalendarGrid({
 
   const weekdays = ["S", "M", "T", "W", "T", "F", "S"];
 
+  const handleGoToToday = () => {
+    const now = new Date();
+    onMonthChange(new Date(now.getFullYear(), now.getMonth(), 1));
+    onDateSelect(now);
+  };
+
   return (
     <div className={`flex flex-col bg-card/65 backdrop-blur-md p-4 border border-border rounded-lg w-full ${isFlexible ? 'h-full flex-1' : 'flex-none'}`}>
       {/* Month Navigation */}
       <div className="flex justify-between items-center mb-4 px-2 w-full">
-        <button
-          onClick={handlePrevMonth}
-          className="hover:bg-accent p-1.5 rounded-lg text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-          aria-label="Previous Month"
-        >
-          <ChevronLeft className="w-4 h-4" />
-        </button>
+        {/* Left side: Month and Year */}
         <h2
           className="font-bold text-foreground hover:text-primary text-sm text-center uppercase tracking-tight transition-colors cursor-pointer"
           onClick={() => {
@@ -122,15 +122,35 @@ export function CalendarGrid({
           }}
           title="Return to current month"
         >
-          {monthNames[month]} <span className="font-mono font-medium text-foreground">{year}</span>
+          {monthNames[month]} <span className="ml-1 font-mono font-medium text-foreground">{year}</span>
         </h2>
-        <button
-          onClick={handleNextMonth}
-          className="hover:bg-accent p-1.5 rounded-lg text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-          aria-label="Next Month"
-        >
-          <ChevronRight className="w-4 h-4" />
-        </button>
+
+        {/* Right side: Navigation (Prev, Today, Next) */}
+        <div className="flex items-center gap-0.5 bg-background border border-border rounded-md p-0.5 shadow-sm">
+          <button
+            onClick={handlePrevMonth}
+            className="hover:bg-accent p-1.5 rounded text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            aria-label="Previous Month"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          
+          <button
+            onClick={handleGoToToday}
+            className="px-3 py-1 bg-secondary/50 hover:bg-secondary rounded font-mono text-[10px] text-foreground hover:text-primary font-medium uppercase tracking-widest transition-colors cursor-pointer"
+            title="Go to Today"
+          >
+            Today
+          </button>
+
+          <button
+            onClick={handleNextMonth}
+            className="hover:bg-accent p-1.5 rounded text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            aria-label="Next Month"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {/* Weekday Titles */}
@@ -206,7 +226,7 @@ export function CalendarGrid({
               </div>
 
               {/* Micro hover indicator */}
-              <div className="absolute inset-0 border border-primary/0 group-hover:border-primary/10 rounded-xl transition-colors pointer-events-none" />
+              <div className="absolute inset-0 border border-primary/0 group-hover:border-primary/10 rounded-sm transition-colors pointer-events-none" />
             </button>
           );
         })}

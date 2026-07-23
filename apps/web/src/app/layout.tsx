@@ -1,17 +1,22 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import Script from 'next/script'
-import { Plus_Jakarta_Sans, Outfit } from 'next/font/google'
+import { Inter, Newsreader, Geist_Mono } from 'next/font/google'
 import { cn } from '@myelin/core'
 
-const outfit = Outfit({
-  subsets: ['latin'],
-  variable: '--font-heading'
-})
-
-const plusJakartaSans = Plus_Jakarta_Sans({
+const inter = Inter({
   subsets: ['latin'],
   variable: '--font-sans'
+})
+
+const newsreader = Newsreader({
+  subsets: ['latin'],
+  variable: '--font-serif'
+})
+
+const geistMono = Geist_Mono({
+  subsets: ['latin'],
+  variable: '--font-mono'
 })
 
 export const metadata: Metadata = {
@@ -37,7 +42,7 @@ export default function RootLayout ({
     <html
       lang='en'
       suppressHydrationWarning
-      className={cn('font-sans', plusJakartaSans.variable, outfit.variable)}
+      className={cn('font-sans', inter.variable, newsreader.variable, geistMono.variable)}
     >
       <head>
         <link rel='icon' href='/favicon.ico' sizes='any' />
@@ -55,7 +60,7 @@ export default function RootLayout ({
           `}
         </Script>
       </head>
-      <body className='antialiased'>{children}</body>
+      <body className='antialiased bg-background text-foreground'>{children}</body>
     </html>
   )
 }

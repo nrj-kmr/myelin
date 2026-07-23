@@ -35,31 +35,70 @@ export function EmailInsightsTab ({
   deleteEmail
 }: EmailInsightsTabProps) {
   const router = useRouter()
+  const [filterMode, setFilterMode] = React.useState<'all' | 'unread'>('unread')
+  const [userManuallySelected, setUserManuallySelected] = React.useState(false)
 
-  const activeEmails = emails.filter(
-    (e) => !e.markedReadLocally && !e.markedDeletedLocally
-  )
+  const activeEmails = emails.filter((e) => {
+    if (e.markedDeletedLocally) return false
+    if (filterMode === 'unread') {
+      return e.isUnread && !e.markedReadLocally
+    }
+    return true
+  })
+
+  const unreadCount = emails.filter(e => e.isUnread && !e.markedReadLocally && !e.markedDeletedLocally).length
+
+  React.useEffect(() => {
+    if (!loadingEmails && emails.length > 0 && !userManuallySelected) {
+      if (filterMode === 'unread' && unreadCount === 0) {
+        setFilterMode('all')
+      }
+    }
+  }, [loadingEmails, emails.length, unreadCount, filterMode, userManuallySelected])
 
   return (
-    <div className='flex flex-col gap-3 h-full overflow-hidden animate-fadeIn'>
+    <div className='flex flex-col gap-3 h-full overflow-hidden'>
       <div className='flex justify-between items-center'>
         <span className='flex items-center gap-1.5 font-mono font-bold text-[10px] text-muted-foreground uppercase tracking-wider'>
           <Mail className='w-3.5 h-3.5' /> Mail Summaries
         </span>
+
         {googleConnected && (
-          <button
-            type='button'
-            onClick={() => fetchGoogleData(true, 'email')}
-            disabled={loadingEmails}
-            className='flex justify-center items-center hover:bg-muted p-1 rounded text-muted-foreground hover:text-foreground transition-all cursor-pointer'
-            title='Refresh Gmail Inbox'
-          >
-            <RefreshCw
-              className={`w-3 h-3 ${
-                loadingEmails ? 'animate-spin text-secondary' : ''
-              }`}
-            />
-          </button>
+          <div className="flex items-center gap-2">
+            <div className="flex bg-muted/50 p-0.5 border border-border/50 rounded-md">
+              <button
+                onClick={() => {
+                  setFilterMode('unread')
+                  setUserManuallySelected(true)
+                }}
+                className={`px-3 py-1 rounded-sm font-mono text-[10px] uppercase tracking-wider transition-colors ${filterMode === 'unread' ? 'bg-background shadow font-bold text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+              >
+                Unread
+              </button>
+              <button
+                onClick={() => {
+                  setFilterMode('all')
+                  setUserManuallySelected(true)
+                }}
+                className={`px-3 py-1 rounded-sm font-mono text-[10px] uppercase tracking-wider transition-colors ${filterMode === 'all' ? 'bg-background shadow font-bold text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+              >
+                All
+              </button>
+            </div>
+            <button
+              type='button'
+              onClick={() => fetchGoogleData(true, 'email')}
+              disabled={loadingEmails}
+              className='flex justify-center items-center hover:bg-muted p-1 rounded text-muted-foreground hover:text-foreground transition-all cursor-pointer'
+              title='Refresh Gmail Inbox'
+            >
+              <RefreshCw
+                className={`w-3 h-3 ${
+                  loadingEmails ? 'animate-spin text-secondary' : ''
+                }`}
+              />
+            </button>
+          </div>
         )}
       </div>
 
@@ -85,7 +124,11 @@ export function EmailInsightsTab ({
         </div>
       ) : activeEmails.length === 0 ? (
         <div className='flex justify-center items-center bg-muted/10 p-4 border border-border/40 rounded-xl min-h-28 text-[10px] text-muted-foreground text-center italic'>
-          You're clear, <br /> You have no unread emails.
+          {filterMode === 'unread' ? (
+            <>You're clear, <br /> You have no unread emails.</>
+          ) : (
+            <>Your inbox is empty. <br /> No recent emails found.</>
+          )}
         </div>
       ) : (
         <div className='flex flex-col gap-2 h-full overflow-hidden'>
@@ -100,7 +143,11 @@ export function EmailInsightsTab ({
             className='bg-muted/30 hover:bg-muted/50 p-4 border border-border/40 rounded-xl w-full overflow-hidden transition-colors cursor-pointer'
           >
             <p className='mb-1 font-medium text-foreground text-sm'>
-              You have {activeEmails.length} unread emails.
+              {filterMode === 'unread'
+                ? `You have ${
+                    activeEmails.filter(e => e.isUnread).length
+                  } unread emails.`
+                : `Showing ${activeEmails.length} recent emails.`}
             </p>
             <p className='text-muted-foreground text-xs wrap-break-word leading-relaxed'>
               Recent senders include:{' '}
@@ -114,7 +161,7 @@ export function EmailInsightsTab ({
             {activeEmails[0]?.summary && (
               <p className='mt-2 text-muted-foreground text-xs italic line-clamp-2'>
                 "
-                <span dangerouslySetInnerHTML={{ __html: emails[0].summary }} />
+                <span dangerouslySetInnerHTML={{ __html: activeEmails[0].summary }} />
                 "
               </p>
             )}
@@ -125,18 +172,18 @@ export function EmailInsightsTab ({
               <div className='flex items-center gap-2 pb-2 border-border/50 border-b text-muted-foreground'>
                 <Mail className='w-4 h-4' />
                 <h5 className='font-semibold text-sm tracking-tight'>
-                  Recent Unread Emails
+                  {filterMode === 'unread' ? 'Recent Unread Emails' : 'Recent 25 Emails'}
                 </h5>
               </div>
               <div className='flex flex-col flex-1 gap-2 pr-2 pb-4 overflow-y-auto'>
-                {emails.map((mail, idx) => {
+                {activeEmails.map((mail, idx) => {
                   if (mail.markedDeletedLocally) return null
 
                   return (
                     <div
-                      key={idx}
+                      key={mail.id}
                       className={`shrink-0 group/item relative flex flex-col gap-1 p-2 border border-border/40 rounded-md w-full overflow-hidden transition-all cursor-pointer hover:bg-muted/75 ${
-                        mail.markedReadLocally
+                        (!mail.isUnread || mail.markedReadLocally)
                           ? 'bg-muted/10 opacity-70'
                           : 'bg-muted/40'
                       }`}
@@ -147,7 +194,7 @@ export function EmailInsightsTab ({
                       >
                         <div className='flex justify-between items-center w-full font-mono font-semibold text-[10px] text-muted-foreground'>
                           <span className='flex items-center gap-2 truncate'>
-                            {!mail.markedReadLocally && (
+                            {(mail.isUnread && !mail.markedReadLocally) && (
                               <div className='bg-primary rounded-full w-1.5 h-1.5 animate-pulse' />
                             )}
                             {mail.sender}
@@ -158,7 +205,7 @@ export function EmailInsightsTab ({
                         </div>
                         <p
                           className={`text-foreground text-xs line-clamp-1 transition-colors ${
-                            !mail.markedReadLocally
+                            (mail.isUnread && !mail.markedReadLocally)
                               ? 'group-hover/item:text-primary font-bold'
                               : 'font-medium'
                           }`}
@@ -175,7 +222,7 @@ export function EmailInsightsTab ({
 
                       {/* Action Buttons */}
                       <div className='top-2 right-2 absolute flex gap-1 bg-background/80 opacity-0 group-hover/item:opacity-100 shadow-sm backdrop-blur-sm p-1 rounded transition-opacity'>
-                        {!mail.markedReadLocally && markEmailAsRead && (
+                        {(mail.isUnread && !mail.markedReadLocally) && markEmailAsRead && (
                           <button
                             onClick={e => {
                               e.stopPropagation()
@@ -203,11 +250,7 @@ export function EmailInsightsTab ({
                           <button
                             onClick={e => {
                               e.stopPropagation()
-                              if (
-                                confirm(
-                                  'Are you sure you want to delete this email?'
-                                )
-                              ) {
+                              if (window.confirm('Are you sure you want to delete this email?')) {
                                 deleteEmail(mail.id)
                               }
                             }}
