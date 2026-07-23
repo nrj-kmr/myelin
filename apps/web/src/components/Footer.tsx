@@ -7,48 +7,61 @@ import { useRouter } from "next/navigation";
 export function Footer() {
   const router = useRouter();
   return (
-    <footer className="z-10 relative bg-muted/20 py-16 border-border border-t">
-      <div className="flex flex-col items-center gap-12 mx-auto px-6 max-w-4xl">
+    <footer className="border-t border-border/40 py-12">
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="grid md:grid-cols-2 gap-10">
+          <div>
+            <div 
+              onClick={() => router.push('/')}
+              className="flex items-center gap-2 mb-4 cursor-pointer group"
+            >
+              <div className="w-6 h-6 rounded-md bg-accent/10 border border-accent/20 flex items-center justify-center transition-transform group-hover:scale-110">
+                <Brain className="w-3 h-3 text-accent-foreground" />
+              </div>
+              <span className="font-mono text-xs tracking-wider text-foreground uppercase">
+                Myelin
+              </span>
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-xs font-sans">
+              A unified workspace to journal thoughts and track your money with ease.
+            </p>
+          </div>
 
-        <div className="flex sm:flex-row flex-col justify-between items-center border-border w-full">
-          <div
-          onClick={() => router.push('/')}
-          className="flex items-center gap-2 cursor-pointer"
-          >
-            <Brain className="w-4 h-4 text-primary" />
-            <span className="font-bold text-muted-foreground text-xs tracking-wider">
-              MYELIN App © 2026
+          <div className="flex md:justify-end gap-16">
+            <div>
+              <h4 className="font-mono text-[10px] tracking-wider text-muted-foreground uppercase mb-4">Connect</h4>
+              <div className="flex flex-col gap-3">
+                <a
+                  href="https://github.com/nrj-kmr"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-mono text-xs text-foreground/70 hover:text-foreground transition-colors uppercase flex items-center gap-2"
+                >
+                  <Github className="w-3.5 h-3.5" /> GitHub
+                </a>
+                <a
+                  href="https://twitter.com/neeraaj_"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-mono text-xs text-foreground/70 hover:text-foreground transition-colors uppercase flex items-center gap-2"
+                >
+                  <Twitter className="w-3.5 h-3.5" /> Twitter
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="mt-12 pt-6 border-t border-border/30 flex flex-col md:flex-row justify-between items-center gap-4">
+          <span className="font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
+            Myelin App © 2026. All rights reserved.
+          </span>
+          <div className="flex items-center gap-6">
+            <span className="font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
+              Engineered to scale
             </span>
           </div>
-
-          <div className="flex items-center gap-5">
-            <a
-              href="https://github.com/nrj-kmr"
-              target="_blank"
-              rel="noreferrer"
-              className="text-muted-foreground hover:text-enhanced-contrast transition-colors"
-              aria-label="GitHub"
-            >
-              <Github className="w-4.5 h-4.5" />
-            </a>
-            <a
-              href="https://twitter.com/neeraaj_"
-              target="_blank"
-              rel="noreferrer"
-              className="text-muted-foreground hover:text-enhanced-contrast transition-colors"
-              aria-label="Twitter"
-            >
-              <Twitter className="w-4.5 h-4.5" />
-            </a>
-          </div>
         </div>
-
-        <div className="flex justify-center w-full">
-          <span className="bg-clip-text bg-linear-to-b from-primary/0 to-primary/80 font-serif text-[10vw] text-transparent tracking-widest select-none">
-            myelin.
-          </span>
-        </div>
-
       </div>
     </footer>
   );

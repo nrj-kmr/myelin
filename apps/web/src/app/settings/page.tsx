@@ -152,13 +152,13 @@ export default function SettingsPage () {
         } catch (e) {
           console.warn('Google Disconnect DB sync deferred:', e)
         }
+        }
       }
     }
-  }
 
   const handleSignOut = async () => {
     if (confirm('Are you sure you want to sign out?')) {
-      const keysToRemove = [
+    const keysToRemove = [
         'myelin_onboarded',
         'myelin_user_name',
         'myelin_user_email',

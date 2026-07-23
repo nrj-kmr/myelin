@@ -1,12 +1,11 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import { Calendar, RefreshCw, Loader2, AlertCircle, Plus, Pencil, Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { CalendarEventItem } from '@myelin/core'
 import { useInsightsStore } from '@/store/useInsightsStore'
 import { GoogleConnectPrompt } from './GoogleConnectPrompt'
-
 interface CalendarInsightsTabProps {
   googleConnected: boolean
   loadingCalendar: boolean
@@ -38,18 +37,22 @@ export function CalendarInsightsTab({
 }: CalendarInsightsTabProps) {
   const router = useRouter()
   const {
-    editingEvent,
-    setEditingEvent,
-    addingEventDate,
-    setAddingEventDate,
     newEventTitle,
     setNewEventTitle,
     newEventTime,
     setNewEventTime
   } = useInsightsStore()
 
+  const [addingEventDate, setAddingEventDate] = useState<string | null>(null)
+  const [editingEvent, setEditingEvent] = useState<{
+    dateKey: string;
+    index: number;
+    title: string;
+    time: string;
+  } | null>(null)
+
   return (
-    <div className='flex flex-col gap-3 h-full overflow-hidden animate-fadeIn'>
+    <div className='flex flex-col gap-3 h-full overflow-hidden'>
       <div className='flex justify-between items-center'>
         <span className='flex items-center gap-1.5 font-mono font-bold text-[10px] text-muted-foreground uppercase tracking-wider'>
           <Calendar className='w-3.5 h-3.5' /> Schedules
@@ -183,9 +186,10 @@ export function CalendarInsightsTab({
               const selectedDayEvents = calendarEvents.filter(
                 (e) => e.dateKey === selectedDateKey
               )
-              const nextEvent =
-                calendarEvents.find((e) => e.dateKey && e.dateKey >= todayKey) ||
-                calendarEvents[0]
+              const upcomingEvents = calendarEvents
+                .filter((e) => e.dateKey && e.dateKey >= todayKey)
+                .sort((a, b) => a.dateKey!.localeCompare(b.dateKey!))
+              const nextEvent = upcomingEvents[0]
 
               if (selectedDateKey && selectedDayEvents.length === 0) {
                 return (
@@ -440,11 +444,8 @@ export function CalendarInsightsTab({
                           {onDeleteEvent && (
                             <button
                               onClick={() => {
-                                if (confirm('Delete this event?')) {
-                                  onDeleteEvent(
-                                    evt.dateKey as string,
-                                    evt.originalIndex as number
-                                  )
+                                if (window.confirm('Are you sure you want to delete this event?')) {
+                                  onDeleteEvent(evt.dateKey as string, evt.originalIndex as number)
                                 }
                               }}
                               className='hover:bg-red-500/20 p-1.5 rounded text-muted-foreground hover:text-red-500 transition-colors'

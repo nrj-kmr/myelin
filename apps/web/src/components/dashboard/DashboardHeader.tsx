@@ -8,10 +8,10 @@ import {
   Settings,
   LogOut,
   LayoutDashboard,
-  User
+  User,
+  ArrowLeft
 } from 'lucide-react'
-import { supabase, isSupabaseConfigured } from '@myelin/core'
-import { LS_KEYS } from '@myelin/core'
+import { supabase, isSupabaseConfigured, LS_KEYS } from '@myelin/core'
 import { useUserSession } from '@/hooks/useUserSession'
 import { useSessionStore } from '@/store/useSessionStore'
 import { ThemeToggle } from '@/components/ThemeToggle'
@@ -24,6 +24,7 @@ interface DashboardHeaderProps {
   currency: string
   onToggleTheme: () => void
   onChangeCurrency: (currency: string) => void
+  backLink?: { label: string, href: string }
 }
 
 export function DashboardHeader ({
@@ -31,7 +32,8 @@ export function DashboardHeader ({
   theme,
   currency,
   onToggleTheme,
-  onChangeCurrency
+  onChangeCurrency,
+  backLink
 }: DashboardHeaderProps) {
   const { isOnboarded } = useUserSession()
   const { avatarUrl, initSession } = useSessionStore()
@@ -42,7 +44,6 @@ export function DashboardHeader ({
   }, [initSession])
 
   const handleSignOut = async () => {
-    if (confirm('Are you sure you want to sign out?')) {
       const keysToRemove = [
         LS_KEYS.ONBOARDED,
         LS_KEYS.USER_NAME,
@@ -60,14 +61,24 @@ export function DashboardHeader ({
         await supabase.auth.signOut()
       }
 
-      window.location.reload()
-    }
+      window.location.href = '/'
   }
 
   return (
     <header className='top-0 z-50 sticky bg-card/70 backdrop-blur-md border-border border-b w-full'>
       <div className='flex justify-between items-center mx-auto px-4 md:px-6 max-w-[1600px] h-16'>
         <div className='flex items-center gap-4'>
+          {backLink && (
+            <>
+              <Link
+                href={backLink.href}
+                className='flex items-center gap-1.5 hover:bg-zinc-200/50 dark:hover:bg-white/5 p-2 rounded-md font-mono font-semibold text-zinc-500 hover:text-foreground dark:text-zinc-400 text-xs uppercase tracking-wider transition-all cursor-pointer'
+              >
+                <ArrowLeft className='w-4 h-4' /> {backLink.label}
+              </Link>
+              <span className='hidden sm:inline font-light text-zinc-700'>|</span>
+            </>
+          )}
           <Link href='/' className='group flex items-center gap-2.5'>
             <div className='flex justify-center items-center bg-secondary shadow-lg shadow-primary/20 rounded-lg w-8 h-8 group-hover:scale-105 transition-all'>
               <Brain className='w-4 h-4' />
@@ -94,7 +105,7 @@ export function DashboardHeader ({
             >
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className='flex items-center gap-2 bg-muted hover:bg-accent px-3 py-1 border border-border rounded-lg hover:scale-105 transition-all cursor-pointer'
+                className='flex items-center gap-2 bg-muted hover:bg-accent px-3 py-1 border border-border rounded-md hover:scale-105 transition-all cursor-pointer'
               >
                 <span className='hidden sm:inline font-mono font-semibold text-foreground text-xs'>
                   {userName || 'User'}
@@ -118,14 +129,18 @@ export function DashboardHeader ({
                 <Link
                   href='/settings'
                   onClick={() => setIsUserMenuOpen(false)}
-                  className='flex items-center gap-2 hover:bg-muted px-4 py-2 rounded-t-mdl text-muted-foreground hover:text-foreground text-xs transition-color'
+                  className='flex items-center gap-2 hover:bg-muted px-4 py-2.5 rounded-t-md text-muted-foreground hover:text-foreground text-xs transition-color'
                 >
                   <Settings className='w-3.5 h-3.5' /> Settings
                 </Link>
                 <div className='border-border border-t' />
-                <button
-                  onClick={handleSignOut}
-                  className='flex items-center gap-2 hover:bg-red-500/10 px-4 py-2 rounded-b-md w-full text-red-500 text-xs text-left transition-colors'
+                <button 
+                  onClick={() => {
+                    if (window.confirm('Are you sure you want to sign out?')) {
+                      handleSignOut()
+                    }
+                  }}
+                  className='flex items-center gap-2 hover:bg-red-500/10 px-4 py-2.5 rounded-b-md w-full text-red-500 text-xs text-left transition-colors'
                 >
                   <LogOut className='w-3.5 h-3.5' /> Sign Out
                 </button>

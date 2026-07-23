@@ -112,7 +112,7 @@ export function IntelligentInsights ({
 
   if (borderless) {
     return (
-      <div className='relative flex flex-col gap-2 w-full transition-all duration-300'>
+      <div className='relative flex flex-col gap-2 w-full h-full min-h-0 flex-1 overflow-hidden'>
         {renderContent()}
       </div>
     )
@@ -120,15 +120,6 @@ export function IntelligentInsights ({
 
   return (
     <div className={`group relative flex flex-col bg-card/10 shadow-xl p-[1.5px] border rounded-md w-full overflow-hidden transition-all duration-300 flex-1 h-full min-h-0`}>
-      {/* Slow Revolving Blue Light Border Beam */}
-      <div
-        className='z-0 absolute inset-[-400%] animate-[spin_10s_linear_infinite] pointer-events-none'
-        style={{
-          background:
-            'conic-gradient(from 0deg, transparent 65%, #00c3eb 88%, transparent 100%)'
-        }}
-      />
-
       {/* Inner Card Panel Cover */}
       <div className='z-10 relative flex flex-col flex-1 gap-5 bg-card/95 backdrop-blur-md px-5 py-4 rounded-md w-full min-w-0 h-full'>
         {/* Background neon blur lights inside card */}

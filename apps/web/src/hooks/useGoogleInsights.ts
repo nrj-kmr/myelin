@@ -167,7 +167,7 @@ export function useGoogleInsights({
         setEmailError('')
         try {
           const res = await fetchWithRefresh(
-            'https://gmail.googleapis.com/gmail/v1/users/me/messages?q=is:unread'
+            'https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=25'
           )
           if (res.ok) {
             const data = await res.json()
@@ -274,6 +274,7 @@ export function useGoogleInsights({
                   isHtml: bodyData.isHtml,
                   inlineAttachments: bodyData.inlineAttachments,
                   attachments: bodyData.attachments,
+                  isUnread: detail.labelIds?.includes('UNREAD'),
                   time: new Date(
                     Number(detail.internalDate)
                   ).toLocaleString([], {

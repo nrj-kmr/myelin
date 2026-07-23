@@ -6,6 +6,7 @@ export interface EmailItem {
   content?: string
   isHtml?: boolean
   time: string
+  isUnread?: boolean
   markedReadLocally?: boolean
   markedDeletedLocally?: boolean
   inlineAttachments?: { cid: string; attachmentId: string | null; data?: string | null; mimeType: string }[]
